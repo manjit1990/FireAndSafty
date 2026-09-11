@@ -25,4 +25,14 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
             repository.createWorkOrder(order)
         }
     }
+
+    fun assignOrder(orderId: String, technicianId: String, scheduledAt: String?) {
+        viewModelScope.launch {
+            try {
+                repository.assignWorkOrder(orderId, technicianId, scheduledAt)
+            } catch (e: Exception) {
+                // Handle error (e.g. log or update a state)
+            }
+        }
+    }
 }

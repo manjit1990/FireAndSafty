@@ -1,9 +1,9 @@
-# Tasks - Fix Empty User List & Auth Tokens
+# Tasks - Task Assignment & Scheduling
 
-- [x] Add `token` to `SessionEntity` in `FireSafetyDatabase.sq`
-- [x] Update `SessionRepository` and `SessionRepositoryImpl` for tokens
-- [x] Update `FireSafetyApi.kt` to send Authorization header
-- [x] Save token in `LoginViewModel` and `SignupViewModel`
-- [x] Improve error handling in `UserManagementViewModel`
-- [x] Add error and empty states to `UserManagementScreen`
-- [x] Verify user list visibility
+- [x] Backend: Update `WorkOrderService.java` to support `scheduledAt`
+- [x] Backend: Update `WorkOrderController.java` endpoint
+- [x] Shared: Update `FireSafetyApi.kt` assignment call
+- [x] Shared: Create `ScheduleWorkOrderScreen.kt` with Date/Time pickers
+- [x] Shared: Add navigation to `MainApp.kt`
+- [x] Shared: Connect Admin Dashboard to Scheduling screen
+- [ ] Verify functionality

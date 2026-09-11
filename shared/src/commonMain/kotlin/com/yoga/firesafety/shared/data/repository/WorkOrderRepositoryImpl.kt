@@ -90,4 +90,23 @@ class WorkOrderRepositoryImpl(
             isSynced = false // Conceptual: locally created, not yet on server
         )
     }
+
+    override suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?) {
+        val updatedOrder = api.assignWorkOrder(id, technicianId, scheduledAt)
+        // Update local database
+        queries.insertWorkOrder(
+            id = updatedOrder.id,
+            buildingName = updatedOrder.buildingName,
+            address = updatedOrder.address,
+            type = updatedOrder.type,
+            status = updatedOrder.status.name,
+            priority = updatedOrder.priority,
+            scheduledAt = updatedOrder.scheduledAt,
+            scheduledEnd = updatedOrder.scheduledEnd,
+            technicianName = updatedOrder.technicianName,
+            dispatcherNotes = updatedOrder.dispatcherNotes,
+            technicianNotes = updatedOrder.technicianNotes,
+            isSynced = true
+        )
+    }
 }

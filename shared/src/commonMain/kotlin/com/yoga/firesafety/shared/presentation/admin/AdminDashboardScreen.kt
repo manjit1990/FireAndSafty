@@ -27,6 +27,7 @@ fun AdminDashboardScreen(
     onLogout: () -> Unit,
     onCreateOrderClick: () -> Unit,
     onManageUsersClick: () -> Unit,
+    onWorkOrderClick: (String) -> Unit,
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
@@ -90,7 +91,7 @@ fun AdminDashboardScreen(
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(workOrders) { order ->
-                    WorkOrderScheduleItem(order = order, onClick = {})
+                    WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order.id) })
                 }
             }
         }

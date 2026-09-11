@@ -42,8 +42,16 @@ public class WorkOrderController {
 
     @PatchMapping("/{id}/assign")
     @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCHER')")
-    public ResponseEntity<WorkOrder> assignWorkOrder(@PathVariable UUID id, @RequestParam UUID technicianId) {
-        return ResponseEntity.ok(service.assignWorkOrder(id, technicianId));
+    public ResponseEntity<WorkOrder> assignWorkOrder(
+            @PathVariable UUID id, 
+            @RequestParam UUID technicianId,
+            @RequestParam(required = false) String scheduledAt
+    ) {
+        java.time.LocalDateTime scheduleDateTime = null;
+        if (scheduledAt != null && !scheduledAt.isEmpty()) {
+            scheduleDateTime = java.time.LocalDateTime.parse(scheduledAt);
+        }
+        return ResponseEntity.ok(service.assignWorkOrder(id, technicianId, scheduleDateTime));
     }
 
     @PatchMapping("/{id}/status")

@@ -18,6 +18,7 @@ import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.inspection.InspectionFormScreen
 import com.yoga.firesafety.shared.presentation.admin.AdminDashboardScreen
 import com.yoga.firesafety.shared.presentation.admin.CreateWorkOrderScreen
+import com.yoga.firesafety.shared.presentation.admin.ScheduleWorkOrderScreen
 import com.yoga.firesafety.shared.presentation.admin.UserManagementScreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -97,6 +98,9 @@ fun MainNavigation(
                 },
                 onCreateOrderClick = { navController.navigate("create_work_order") },
                 onManageUsersClick = { navController.navigate("user_management") },
+                onWorkOrderClick = { orderId -> 
+                    navController.navigate("schedule_work_order/$orderId")
+                },
                 viewModel = viewModel
             )
         }
@@ -111,6 +115,17 @@ fun MainNavigation(
                 onBackClick = { navController.popBackStack() },
                 onOrderCreated = { navController.popBackStack() },
                 viewModel = viewModel
+            )
+        }
+        composable(
+            "schedule_work_order/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            ScheduleWorkOrderScreen(
+                orderId = orderId,
+                onBackClick = { navController.popBackStack() },
+                onAssigned = { navController.popBackStack() }
             )
         }
         composable(

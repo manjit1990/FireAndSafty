@@ -38,15 +38,18 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrder assignWorkOrder(UUID id, UUID technicianId) {
+    public WorkOrder assignWorkOrder(UUID id, UUID technicianId, LocalDateTime scheduledAt) {
         WorkOrder workOrder = getWorkOrderById(id);
         // Business Rule: Only NEW or ASSIGNED jobs can be (re)assigned
         if (workOrder.getStatus() != WorkOrderStatus.NEW && workOrder.getStatus() != WorkOrderStatus.ASSIGNED) {
             throw new IllegalStateException("Cannot assign work order in status: " + workOrder.getStatus());
         }
         
-        // In a real app, we'd fetch the technician user and set it
+        // Fetch technician (conceptual for now, in a real app we'd fetch from repository)
+        // User technician = userRepository.findById(technicianId).orElseThrow();
         // workOrder.setAssignedTechnician(technician);
+        
+        workOrder.setScheduledAt(scheduledAt);
         workOrder.setStatus(WorkOrderStatus.ASSIGNED);
         return repository.save(workOrder);
     }

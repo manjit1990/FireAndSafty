@@ -1,40 +1,47 @@
-# Implementation Plan - Fix Empty User List & Auth Tokens
+# Implementation Plan - Task Assignment & Scheduling
 
-The "User Management" screen is empty because the app is not sending the required security token to the server. I also need to improve error reporting so you can see if something goes wrong.
+This plan outlines the changes to allow Admins to assign work orders to technicians and set a specific date and time for the task.
 
 ## Proposed Changes
 
+### [backend] component
+
+#### [MODIFY] [WorkOrderService.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/WorkOrderService.java)
+- Update `assignWorkOrder` to accept a `LocalDateTime scheduledAt` parameter.
+- Add logic to set the technician and the scheduled time on the `WorkOrder`.
+- Update the status to `ASSIGNED`.
+
+#### [MODIFY] [WorkOrderController.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/controller/WorkOrderController.java)
+- Update the `@PatchMapping("/{id}/assign")` endpoint to accept an optional `scheduledAt` ISO date-time string.
+
+---
+
 ### [shared] component
 
-#### [MODIFY] [FireSafetyDatabase.sq](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/sqldelight/com/yoga/firesafety/shared/db/FireSafetyDatabase.sq)
-- Update `SessionEntity` to include a `token` field.
-- Update `saveSession` query to accept and store the token.
-
-#### [MODIFY] [SessionRepository.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/repository/SessionRepository.kt) & [SessionRepositoryImpl.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/repository/SessionRepositoryImpl.kt)
-- Update `UserSession` data class and repository methods to include the `token`.
-
 #### [MODIFY] [FireSafetyApi.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/remote/FireSafetyApi.kt)
-- Update the class to store the current `token`.
-- Add a helper method to set the token after login/signup.
-- Include the `Authorization: Bearer <token>` header in all secured API calls (`getAllUsers`, `getWorkOrders`, etc.).
+- Update `assignWorkOrder` method to take `technicianId` and `scheduledAt` (String).
 
-#### [MODIFY] [LoginViewModel.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginViewModel.kt) & [SignupViewModel.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/SignupViewModel.kt)
-- Correctly capture the `token` from the server response and save it to the session.
-- Pass the token to `FireSafetyApi` immediately after a successful authentication.
+#### [NEW] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
+- Create a new screen where Admins can:
+    - **Select Technician**: A dropdown list showing all users with the `TECHNICIAN` role.
+    - **Select Date**: Using Material 3 `DatePicker`.
+    - **Select Time**: Using Material 3 `TimePicker`.
+- Include a "Confirm Assignment" button that calls the API.
 
-#### [MODIFY] [UserManagementViewModel.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/UserManagementViewModel.kt)
-- Add an `error` state.
-- Update `loadUsers` to catch exceptions and update the `error` state.
+#### [MODIFY] [MainApp.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/MainApp.kt)
+- Add a new route `schedule_work_order/{orderId}` to the navigation graph.
 
-#### [MODIFY] [UserManagementScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/UserManagementScreen.kt)
-- Display an error message or an "Empty" state if no users are found or if the API call fails.
+#### [MODIFY] [AdminDashboardScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/AdminDashboardScreen.kt)
+- Update the `onClick` handler of work order items to navigate to the scheduling screen.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Apply the changes.
-2. Run the app.
-3. Log in as an Admin.
-4. Navigate to "User Management".
-5. Verify that the list of users is now visible (it should at least show your own account).
-6. Verify that any server errors (like "Unauthorized") are now clearly displayed on the screen.
+1. **Push Backend Changes**: Deploy the updated backend to Render.
+2. **Login as Admin**: Open the app and log in.
+3. **Select Unscheduled Task**: Click on a work order that says "Unscheduled".
+4. **Assign & Schedule**:
+    - Pick a technician from the list.
+    - Pick a date and time.
+    - Click "Confirm Assignment".
+5. **Verify Dashboard**: The work order should now show the assigned technician (in a future update) and the specific scheduled time instead of "Unscheduled".

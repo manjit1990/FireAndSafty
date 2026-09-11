@@ -68,3 +68,20 @@ SELECT * FROM InspectionEntity WHERE workOrderId = ?;
 
 selectChecklistItems:
 SELECT * FROM ChecklistItemEntity WHERE inspectionId = ?;
+
+-- Session Table for Auto Login
+CREATE TABLE SessionEntity (
+    id INTEGER PRIMARY KEY CHECK (id = 1), -- Only one active session
+    email TEXT NOT NULL,
+    role TEXT NOT NULL
+);
+
+saveSession:
+INSERT OR REPLACE INTO SessionEntity(id, email, role)
+VALUES (1, ?, ?);
+
+getSession:
+SELECT * FROM SessionEntity WHERE id = 1;
+
+clearSession:
+DELETE FROM SessionEntity WHERE id = 1;

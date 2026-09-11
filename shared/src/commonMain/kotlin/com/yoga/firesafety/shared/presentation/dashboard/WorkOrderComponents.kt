@@ -77,9 +77,11 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        "${order.scheduledAt ?: "08:00 AM"} - ${order.scheduledEnd ?: "09:00 AM"}", 
+                        if (order.scheduledAt != null && order.scheduledEnd != null) 
+                            "${order.scheduledAt} - ${order.scheduledEnd}"
+                        else "Unscheduled", 
                         style = MaterialTheme.typography.bodySmall, 
-                        color = Color.Gray
+                        color = if (order.scheduledAt != null) Color.Gray else MaterialTheme.colorScheme.error
                     )
                 }
                 

@@ -72,9 +72,9 @@ fun WorkOrderDetailsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Today • Sep 03", 
+                            if (order.scheduledAt != null) "Today • Sep 03" else "Unscheduled", 
                             style = MaterialTheme.typography.labelLarge,
-                            color = Color.Gray
+                            color = if (order.scheduledAt != null) Color.Gray else MaterialTheme.colorScheme.error
                         )
                     }
                     

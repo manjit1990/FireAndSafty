@@ -55,8 +55,8 @@ fun CreateWorkOrderScreen(
                             type = type,
                             status = WorkOrderStatus.NEW,
                             priority = priority,
-                            scheduledAt = "09:00 AM",
-                            scheduledEnd = "10:00 AM",
+                            scheduledAt = null,
+                            scheduledEnd = null,
                             dispatcherNotes = notes
                         )
                         viewModel.createOrder(newOrder)
@@ -89,8 +89,19 @@ fun CreateWorkOrderScreen(
             Text("Service Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
             
-            DropdownField("Service Type (e.g. INSPECTION, REPAIR)")
-            DropdownField("Priority (HIGH, MEDIUM, LOW)")
+            DropdownField(
+                label = "Service Type (e.g. INSPECTION, REPAIR)",
+                selectedValue = type,
+                options = listOf("INSPECTION", "REPAIR", "MAINTENANCE", "EMERGENCY"),
+                onOptionSelected = { type = it }
+            )
+            
+            DropdownField(
+                label = "Priority (HIGH, MEDIUM, LOW)",
+                selectedValue = priority,
+                options = listOf("LOW", "MEDIUM", "HIGH", "CRITICAL"),
+                onOptionSelected = { priority = it }
+            )
             
             Spacer(modifier = Modifier.height(16.dp))
             

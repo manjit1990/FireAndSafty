@@ -144,9 +144,29 @@ fun MonthlyInspectionForm() {
             Text("Fire Alarm Test", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
             
-            DropdownField("Month of Inspection")
-            DropdownField("AC Power Light On Upon Arrival?")
-            DropdownField("System Normal Upon Arrival?")
+            var selectedMonth by remember { mutableStateOf("") }
+            DropdownField(
+                label = "Month of Inspection",
+                selectedValue = selectedMonth,
+                options = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+                onOptionSelected = { selectedMonth = it }
+            )
+            
+            var acPower by remember { mutableStateOf("") }
+            DropdownField(
+                label = "AC Power Light On Upon Arrival?",
+                selectedValue = acPower,
+                options = listOf("Yes", "No"),
+                onOptionSelected = { acPower = it }
+            )
+            
+            var systemNormal by remember { mutableStateOf("") }
+            DropdownField(
+                label = "System Normal Upon Arrival?",
+                selectedValue = systemNormal,
+                options = listOf("Yes", "No"),
+                onOptionSelected = { systemNormal = it }
+            )
             
             var condition by remember { mutableStateOf("") }
             var deviceLoc by remember { mutableStateOf("") }
@@ -159,14 +179,26 @@ fun MonthlyInspectionForm() {
             Spacer(modifier = Modifier.height(16.dp))
             
             Text("Fire hose stations checked?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-            DropdownField("Select Option")
+            var hoseStation by remember { mutableStateOf("") }
+            DropdownField(
+                label = "Select Option",
+                selectedValue = hoseStation,
+                options = listOf("Yes", "No"),
+                onOptionSelected = { hoseStation = it }
+            )
             var hoseReason by remember { mutableStateOf("") }
             FormField("If no, specify reason", hoseReason) { hoseReason = it }
             
             Spacer(modifier = Modifier.height(12.dp))
             
             Text("Emergency lighting tested?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-            DropdownField("Select Option")
+            var emergencyLight by remember { mutableStateOf("") }
+            DropdownField(
+                label = "Select Option",
+                selectedValue = emergencyLight,
+                options = listOf("Yes", "No"),
+                onOptionSelected = { emergencyLight = it }
+            )
             var lightReason by remember { mutableStateOf("") }
             FormField("If no, specify reason", lightReason) { lightReason = it }
             
@@ -202,22 +234,51 @@ fun FormField(label: String, value: String, onValueChange: (String) -> Unit) {
 }
 
 @Composable
-fun DropdownField(label: String) {
+fun DropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
-        OutlinedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF8FAFC)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Box {
+            OutlinedCard(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF8FAFC)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
             ) {
-                Text("Select...", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (selectedValue.isEmpty()) "Select..." else selectedValue,
+                        color = if (selectedValue.isEmpty()) Color.Gray else Color.Black,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+                }
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

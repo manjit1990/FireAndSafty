@@ -1,6 +1,10 @@
 package com.yoga.firesafety.shared.presentation
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -18,18 +22,39 @@ import com.yoga.firesafety.shared.presentation.admin.UserManagementScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun MainApp() {
+fun MainApp(viewModel: MainViewModel = koinViewModel()) {
+    val authState by viewModel.authState.collectAsState()
+
+    when (val state = authState) {
+        is AuthState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is AuthState.Unauthenticated -> {
+            MainNavigation("login", viewModel)
+        }
+        is AuthState.Authenticated -> {
+            val startDest = if (state.session.role == Role.ADMIN) "admin_dashboard" else "dashboard"
+            MainNavigation(startDest, viewModel)
+        }
+    }
+}
+
+@Composable
+fun MainNavigation(
+    startDestination: String,
+    mainViewModel: MainViewModel
+) {
     val navController = rememberNavController()
-    
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { role ->
-                    val destination = if (role == Role.ADMIN) {
-                        "admin_dashboard"
-                    } else {
-                        "dashboard"
-                    }
+                    val destination = if (role == Role.ADMIN) "admin_dashboard" else "dashboard"
                     navController.navigate(destination) {
                         popUpTo("login") { inclusive = true }
                     }
@@ -42,11 +67,7 @@ fun MainApp() {
         composable("signup") {
             SignupScreen(
                 onSignupSuccess = { role ->
-                    val destination = if (role == Role.ADMIN) {
-                        "admin_dashboard"
-                    } else {
-                        "dashboard"
-                    }
+                    val destination = if (role == Role.ADMIN) "admin_dashboard" else "dashboard"
                     navController.navigate(destination) {
                         popUpTo("login") { inclusive = true }
                     }
@@ -68,7 +89,9 @@ fun MainApp() {
         composable("admin_dashboard") {
             val viewModel: WorkOrderViewModel = koinViewModel()
             AdminDashboardScreen(
-                onLogout = { navController.navigate("login") { popUpTo("admin_dashboard") { inclusive = true } } },
+                onLogout = { 
+                    mainViewModel.logout()
+                },
                 onCreateOrderClick = { navController.navigate("create_work_order") },
                 onManageUsersClick = { navController.navigate("user_management") },
                 viewModel = viewModel

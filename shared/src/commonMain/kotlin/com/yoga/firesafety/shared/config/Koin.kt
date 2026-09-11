@@ -2,7 +2,9 @@ package com.yoga.firesafety.shared.config
 
 import com.yoga.firesafety.shared.data.remote.FireSafetyApi
 import com.yoga.firesafety.shared.data.repository.WorkOrderRepositoryImpl
+import com.yoga.firesafety.shared.data.repository.SessionRepositoryImpl
 import com.yoga.firesafety.shared.domain.repository.WorkOrderRepository
+import com.yoga.firesafety.shared.domain.repository.SessionRepository
 import com.yoga.firesafety.shared.data.local.DriverFactory
 import com.yoga.firesafety.shared.db.FireSafetyDatabase
 import com.yoga.firesafety.shared.db.WorkOrderEntity
@@ -10,6 +12,7 @@ import com.yoga.firesafety.shared.presentation.auth.LoginViewModel
 import com.yoga.firesafety.shared.presentation.auth.SignupViewModel
 import com.yoga.firesafety.shared.presentation.admin.UserManagementViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
+import com.yoga.firesafety.shared.presentation.MainViewModel
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
@@ -42,8 +45,10 @@ val commonModule = module {
     }
     single { FireSafetyApi(get()) }
     single<WorkOrderRepository> { WorkOrderRepositoryImpl(get(), get()) }
-    factory { LoginViewModel(get()) }
-    factory { SignupViewModel(get()) }
+    single<SessionRepository> { SessionRepositoryImpl(get()) }
+    factory { LoginViewModel(get(), get()) }
+    factory { SignupViewModel(get(), get()) }
     factory { UserManagementViewModel(get()) }
     factory { WorkOrderViewModel(get()) }
+    factory { MainViewModel(get()) }
 }

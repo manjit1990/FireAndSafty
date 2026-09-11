@@ -5,11 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.yoga.firesafety.shared.data.remote.FireSafetyApi
 import com.yoga.firesafety.shared.data.remote.dto.RegisterRequest
 import com.yoga.firesafety.shared.domain.model.Role
+import com.yoga.firesafety.shared.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SignupViewModel(private val api: FireSafetyApi) : ViewModel() {
+class SignupViewModel(
+    private val api: FireSafetyApi,
+    private val sessionRepository: SessionRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow<SignupState>(SignupState.Initial)
     val uiState: StateFlow<SignupState> = _uiState
 
@@ -32,7 +36,10 @@ class SignupViewModel(private val api: FireSafetyApi) : ViewModel() {
                     phoneNumber = phoneNumber
                 )
                 val response = api.register(request)
-                // For demo, we just transition to success
+                
+                // Save session for auto-login
+                sessionRepository.saveSession(email, response.role)
+                
                 _uiState.value = SignupState.Success(response.role)
             } catch (e: Exception) {
                 _uiState.value = SignupState.Error(e.message ?: "Registration failed")

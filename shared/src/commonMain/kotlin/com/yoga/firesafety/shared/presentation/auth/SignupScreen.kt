@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.Role
@@ -33,7 +34,18 @@ fun SignupScreen(
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var phoneNumber by remember { mutableStateOf("") }
+    
+    val countries = listOf(
+        Country("Canada", "+1", "🇨🇦"),
+        Country("United States", "+1", "🇺🇸"),
+        Country("India", "+91", "🇮🇳"),
+        Country("United Kingdom", "+44", "🇬🇧"),
+        Country("Australia", "+61", "🇦🇺")
+    )
+    var selectedCountry by remember { mutableStateOf(countries[0]) }
+    var showCountryPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(state) {
         if (state is SignupState.Success) {
@@ -124,7 +136,15 @@ fun SignupScreen(
                         onValueChange = { password = it },
                         label = { Text("Password") },
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -135,7 +155,27 @@ fun SignupScreen(
                         value = phoneNumber,
                         onValueChange = { phoneNumber = it },
                         label = { Text("Phone Number (Optional)") },
-                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                        leadingIcon = {
+                            Box {
+                                TextButton(onClick = { showCountryPicker = true }) {
+                                    Text("${selectedCountry.flag} ${selectedCountry.code}")
+                                }
+                                DropdownMenu(
+                                    expanded = showCountryPicker,
+                                    onDismissRequest = { showCountryPicker = false }
+                                ) {
+                                    countries.forEach { country ->
+                                        DropdownMenuItem(
+                                            text = { Text("${country.flag} ${country.name} (${country.code})") },
+                                            onClick = {
+                                                selectedCountry = country
+                                                showCountryPicker = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -145,7 +185,8 @@ fun SignupScreen(
                     
                     Button(
                         onClick = { 
-                            viewModel.signup(firstName, lastName, email, password, phoneNumber)
+                            val fullPhoneNumber = "${selectedCountry.code}${phoneNumber}"
+                            viewModel.signup(firstName, lastName, email, password, if (phoneNumber.isBlank()) null else fullPhoneNumber)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -186,3 +227,5 @@ fun SignupScreen(
         }
     }
 }
+
+data class Country(val name: String, val code: String, val flag: String)

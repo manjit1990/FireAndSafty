@@ -1,47 +1,48 @@
-# Implementation Plan - Task Assignment & Scheduling
+# Implementation Plan - Enhanced Scheduling & Admin Info
 
-This plan outlines the changes to allow Admins to assign work orders to technicians and set a specific date and time for the task.
+This plan outlines the changes to improve the "Schedule Task" UI, add Start/End time support, and display Admin information at the top.
+
+## User Review Required
+
+> [!NOTE]
+> The backend `WorkOrder` entity already has a `completedAt` field, but we will use/add a `scheduledEnd` field to match the requirement for a planned end time.
 
 ## Proposed Changes
 
 ### [backend] component
 
+#### [MODIFY] [WorkOrder.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/entity/WorkOrder.java)
+- Ensure `scheduledEnd` field exists or add it if necessary (the Kotlin side has it).
+
 #### [MODIFY] [WorkOrderService.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/WorkOrderService.java)
-- Update `assignWorkOrder` to accept a `LocalDateTime scheduledAt` parameter.
-- Add logic to set the technician and the scheduled time on the `WorkOrder`.
-- Update the status to `ASSIGNED`.
+- Update `assignWorkOrder` to accept `LocalDateTime scheduledEnd`.
+- Update logic to save both start and end times.
 
 #### [MODIFY] [WorkOrderController.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/controller/WorkOrderController.java)
-- Update the `@PatchMapping("/{id}/assign")` endpoint to accept an optional `scheduledAt` ISO date-time string.
+- Update the assignment endpoint to accept `scheduledEnd` as an optional request parameter.
 
 ---
 
 ### [shared] component
 
 #### [MODIFY] [FireSafetyApi.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/remote/FireSafetyApi.kt)
-- Update `assignWorkOrder` method to take `technicianId` and `scheduledAt` (String).
+- Update `assignWorkOrder` to take `scheduledEnd: String?`.
 
-#### [NEW] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
-- Create a new screen where Admins can:
-    - **Select Technician**: A dropdown list showing all users with the `TECHNICIAN` role.
-    - **Select Date**: Using Material 3 `DatePicker`.
-    - **Select Time**: Using Material 3 `TimePicker`.
-- Include a "Confirm Assignment" button that calls the API.
+#### [MODIFY] [WorkOrderRepository.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/repository/WorkOrderRepository.kt) & [WorkOrderRepositoryImpl.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/repository/WorkOrderRepositoryImpl.kt)
+- Update interface and implementation to support `scheduledEnd`.
 
-#### [MODIFY] [MainApp.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/MainApp.kt)
-- Add a new route `schedule_work_order/{orderId}` to the navigation graph.
-
-#### [MODIFY] [AdminDashboardScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/AdminDashboardScreen.kt)
-- Update the `onClick` handler of work order items to navigate to the scheduling screen.
+#### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
+- **Header**: Add a professional section at the top showing "Assigned by: [Admin Name]".
+- **UI Redesign**:
+    - Use more distinct Cards for task details.
+    - Implement two time selection fields (Start Time & End Time) on a single row or stacked nicely.
+    - Improve spacing and typography.
+- **State**: Add `selectedEndTime` state.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Push Backend Changes**: Deploy the updated backend to Render.
-2. **Login as Admin**: Open the app and log in.
-3. **Select Unscheduled Task**: Click on a work order that says "Unscheduled".
-4. **Assign & Schedule**:
-    - Pick a technician from the list.
-    - Pick a date and time.
-    - Click "Confirm Assignment".
-5. **Verify Dashboard**: The work order should now show the assigned technician (in a future update) and the specific scheduled time instead of "Unscheduled".
+1. **Push Backend**: Deploy the updated backend to Render.
+2. **Login as Admin**: Verify that your name/email appears at the top of the Scheduling screen.
+3. **Set Times**: Pick a date, then pick 9:00 AM as Start and 11:00 AM as End.
+4. **Confirm**: Verify that the task shows the correct time range in the dashboard.

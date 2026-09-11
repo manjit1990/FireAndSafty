@@ -91,8 +91,8 @@ class WorkOrderRepositoryImpl(
         )
     }
 
-    override suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?) {
-        val updatedOrder = api.assignWorkOrder(id, technicianId, scheduledAt)
+    override suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?, scheduledEnd: String?) {
+        val updatedOrder = api.assignWorkOrder(id, technicianId, scheduledAt, scheduledEnd)
         // Update local database
         queries.insertWorkOrder(
             id = updatedOrder.id,

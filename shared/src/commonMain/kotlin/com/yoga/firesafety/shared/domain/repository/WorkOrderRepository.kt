@@ -9,5 +9,5 @@ interface WorkOrderRepository {
     suspend fun refreshWorkOrders()
     suspend fun updateStatus(id: String, status: WorkOrderStatus)
     suspend fun createWorkOrder(order: WorkOrder)
-    suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?)
+    suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?, scheduledEnd: String?)
 }

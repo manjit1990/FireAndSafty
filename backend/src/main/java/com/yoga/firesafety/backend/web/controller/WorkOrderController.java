@@ -45,13 +45,18 @@ public class WorkOrderController {
     public ResponseEntity<WorkOrder> assignWorkOrder(
             @PathVariable UUID id, 
             @RequestParam UUID technicianId,
-            @RequestParam(required = false) String scheduledAt
+            @RequestParam(required = false) String scheduledAt,
+            @RequestParam(required = false) String scheduledEnd
     ) {
-        java.time.LocalDateTime scheduleDateTime = null;
+        java.time.LocalDateTime start = null;
         if (scheduledAt != null && !scheduledAt.isEmpty()) {
-            scheduleDateTime = java.time.LocalDateTime.parse(scheduledAt);
+            start = java.time.LocalDateTime.parse(scheduledAt);
         }
-        return ResponseEntity.ok(service.assignWorkOrder(id, technicianId, scheduleDateTime));
+        java.time.LocalDateTime end = null;
+        if (scheduledEnd != null && !scheduledEnd.isEmpty()) {
+            end = java.time.LocalDateTime.parse(scheduledEnd);
+        }
+        return ResponseEntity.ok(service.assignWorkOrder(id, technicianId, start, end));
     }
 
     @PatchMapping("/{id}/status")

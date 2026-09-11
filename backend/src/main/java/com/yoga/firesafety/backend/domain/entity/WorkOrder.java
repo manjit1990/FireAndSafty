@@ -32,6 +32,8 @@ public class WorkOrder extends BaseEntity {
 
     private LocalDateTime scheduledAt;
 
+    private LocalDateTime scheduledEnd;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_technician_id")
     private User assignedTechnician;

@@ -88,11 +88,12 @@ class FireSafetyApi(private val client: HttpClient) {
         }.body()
     }
 
-    suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?): WorkOrder {
+    suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?, scheduledEnd: String?): WorkOrder {
         return client.patch("$baseUrl/work-orders/$id/assign") {
             addAuthHeader()
             parameter("technicianId", technicianId)
             scheduledAt?.let { parameter("scheduledAt", it) }
+            scheduledEnd?.let { parameter("scheduledEnd", it) }
         }.body()
     }
 }

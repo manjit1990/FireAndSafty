@@ -38,7 +38,7 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrder assignWorkOrder(UUID id, UUID technicianId, LocalDateTime scheduledAt) {
+    public WorkOrder assignWorkOrder(UUID id, UUID technicianId, LocalDateTime scheduledAt, LocalDateTime scheduledEnd) {
         WorkOrder workOrder = getWorkOrderById(id);
         // Business Rule: Only NEW or ASSIGNED jobs can be (re)assigned
         if (workOrder.getStatus() != WorkOrderStatus.NEW && workOrder.getStatus() != WorkOrderStatus.ASSIGNED) {
@@ -50,6 +50,7 @@ public class WorkOrderService {
         // workOrder.setAssignedTechnician(technician);
         
         workOrder.setScheduledAt(scheduledAt);
+        workOrder.setScheduledEnd(scheduledEnd);
         workOrder.setStatus(WorkOrderStatus.ASSIGNED);
         return repository.save(workOrder);
     }

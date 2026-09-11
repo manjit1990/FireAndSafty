@@ -7,6 +7,7 @@ COPY . .
 
 # Build the backend JAR
 # Note: We use the root gradlew to build the subproject
+RUN chmod +x gradlew
 RUN ./gradlew :backend:bootJar --no-daemon
 
 # Run stage

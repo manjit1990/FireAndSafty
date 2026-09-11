@@ -13,9 +13,9 @@ import io.ktor.http.*
 
 class FireSafetyApi(private val client: HttpClient) {
     // Change this to true when deploying to your phone to use the Render URL
-    private val useProduction = false 
+    private val useProduction = true 
     
-    private val productionUrl = "https://your-backend-app.onrender.com/api/v1"
+    private val productionUrl = "https://fireandsafty.onrender.com/api/v1"
     private val localUrl = "http://10.0.2.2:8080/api/v1"
 
     private val baseUrl = if (useProduction) productionUrl else localUrl

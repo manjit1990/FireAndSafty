@@ -1,23 +1,25 @@
-# Walkthrough - Simplified Work Order Creation
+# Walkthrough - Sign-up JSON Error Fix
 
-I have updated the "New Work Order" screen to focus strictly on building and service details, deferring scheduling and technician assignment for later.
+I have updated the backend to include the `role` field in the authentication response, which fixes the deserialization error you encountered.
 
 ## Changes Made
 
-### Work Order Creation
-- Removed hardcoded time values (e.g., "09:00 AM") when creating a new work order.
-- New orders are now created in an "Unscheduled" state, which is a more realistic workflow for a dispatcher.
+### Backend
+- **[AuthenticationResponse.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/dto/AuthenticationResponse.java)**: Added the `role` field to the response data object.
+- **[AuthenticationService.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/AuthenticationService.java)**: Updated both registration and authentication methods to include the user's role in the response.
 
-### UI Improvements (Dashboard & Details)
-- **Visual Feedback:** In the Admin Dashboard, unscheduled work orders now clearly display "Unscheduled" in red text instead of showing a placeholder time.
-- **Consistency:** The Visit Details screen also reflects this "Unscheduled" status if the time has not yet been set.
+## Next Steps
 
-## Verification Results
+> [!IMPORTANT]
+> You MUST push these changes to GitHub so Render can update your live API. Run these commands in your terminal:
 
-### Dispatcher Workflow
-- Verified that clicking "CREATE ORDER" now generates a work order without a pre-assigned time.
-- The UI correctly adapts to these null values, providing clear visual cues to the dispatcher.
+```bash
+git add .
+git commit -m "Fix sign-up JSON response error"
+git push
+```
 
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/CreateWorkOrderScreen.kt)
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderComponents.kt)
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderDetailsScreen.kt)
+After pushing, wait a few minutes for Render to show "Live" on your dashboard, then try signing up again in the Android app.
+
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/dto/AuthenticationResponse.java)
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/AuthenticationService.java)

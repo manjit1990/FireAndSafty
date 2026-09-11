@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +25,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun WorkOrderListScreen(
     onWorkOrderClick: (WorkOrder) -> Unit,
+    onLogout: () -> Unit,
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
@@ -35,6 +37,11 @@ fun WorkOrderListScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("September", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text("2026", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 actions = {

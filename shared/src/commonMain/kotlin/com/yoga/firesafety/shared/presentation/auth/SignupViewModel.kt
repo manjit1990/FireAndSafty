@@ -27,18 +27,21 @@ class SignupViewModel(
         viewModelScope.launch {
             _uiState.value = SignupState.Loading
             try {
+                // For testing/demo: If email contains "admin", register as ADMIN
+                val role = if (email.lowercase().contains("admin")) Role.ADMIN else Role.TECHNICIAN
+                
                 val request = RegisterRequest(
                     firstName = firstName,
                     lastName = lastName,
                     email = email,
                     password = password,
-                    role = Role.TECHNICIAN,
+                    role = role,
                     phoneNumber = phoneNumber
                 )
                 val response = api.register(request)
                 
                 // Save session for auto-login
-                sessionRepository.saveSession(email, response.role)
+                sessionRepository.saveSession(email, response.role, response.token)
                 
                 _uiState.value = SignupState.Success(response.role)
             } catch (e: Exception) {

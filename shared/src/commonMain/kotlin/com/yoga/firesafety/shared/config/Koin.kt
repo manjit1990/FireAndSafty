@@ -14,6 +14,7 @@ import com.yoga.firesafety.shared.presentation.admin.UserManagementViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.MainViewModel
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -38,6 +39,11 @@ val commonModule = module {
                     isLenient = true
                 })
             }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 120000L
+                connectTimeoutMillis = 120000L
+                socketTimeoutMillis = 120000L
+            }
         }
     }
     single {
@@ -50,5 +56,5 @@ val commonModule = module {
     factory { SignupViewModel(get(), get()) }
     factory { UserManagementViewModel(get()) }
     factory { WorkOrderViewModel(get()) }
-    factory { MainViewModel(get()) }
+    factory { MainViewModel(get(), get()) }
 }

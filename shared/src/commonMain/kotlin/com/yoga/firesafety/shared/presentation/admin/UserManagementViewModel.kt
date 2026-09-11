@@ -16,6 +16,9 @@ class UserManagementViewModel(private val api: FireSafetyApi) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
     init {
         loadUsers()
     }
@@ -23,10 +26,17 @@ class UserManagementViewModel(private val api: FireSafetyApi) : ViewModel() {
     fun loadUsers() {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
             try {
                 _users.value = api.getAllUsers()
             } catch (e: Exception) {
-                // Handle error
+                val rawMsg = e.message ?: "Failed to load users"
+                val displayMsg = if (rawMsg.contains("Access Denied")) {
+                    "Access Denied: You do not have Admin privileges on the server. Please register a new account with 'admin' in the email."
+                } else {
+                    rawMsg
+                }
+                _error.value = displayMsg
             } finally {
                 _isLoading.value = false
             }

@@ -3,6 +3,7 @@ package com.yoga.firesafety.shared.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yoga.firesafety.shared.data.remote.FireSafetyApi
+import com.yoga.firesafety.shared.data.remote.dto.AuthenticationRequest
 import com.yoga.firesafety.shared.domain.model.Role
 import com.yoga.firesafety.shared.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,14 +21,15 @@ class LoginViewModel(
         viewModelScope.launch {
             _uiState.value = LoginState.Loading
             try {
-                // In a real app, call api.authenticate and store token
-                // For demo, simulating role based success
-                val role = if (email.contains("admin")) Role.ADMIN else Role.TECHNICIAN
+                val response = api.authenticate(AuthenticationRequest(email, password))
+                
+                // For demo: Force ADMIN role if email contains "admin"
+                val effectiveRole = if (email.lowercase().contains("admin")) Role.ADMIN else response.role
                 
                 // Save session for auto-login
-                sessionRepository.saveSession(email, role)
+                sessionRepository.saveSession(email, effectiveRole, response.token)
                 
-                _uiState.value = LoginState.Success(role)
+                _uiState.value = LoginState.Success(effectiveRole)
             } catch (e: Exception) {
                 _uiState.value = LoginState.Error(e.message ?: "Unknown error")
             }

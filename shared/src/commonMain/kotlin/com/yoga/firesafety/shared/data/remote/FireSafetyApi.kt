@@ -8,7 +8,9 @@ import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 
 class FireSafetyApi(private val client: HttpClient) {
@@ -20,36 +22,68 @@ class FireSafetyApi(private val client: HttpClient) {
 
     private val baseUrl = if (useProduction) productionUrl else localUrl
 
+    private var authToken: String? = null
+
+    fun setAuthToken(token: String?) {
+        authToken = token
+    }
+
+    private fun HttpRequestBuilder.addAuthHeader() {
+        authToken?.let { token ->
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+    }
+
     suspend fun register(request: RegisterRequest): AuthenticationResponse {
-        return client.post("$baseUrl/auth/register") {
+        val response = client.post("$baseUrl/auth/register") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body()
+        }
+        if (!response.status.isSuccess()) {
+            val errorBody = response.bodyAsText()
+            throw Exception("Registration failed (${response.status.value}): $errorBody")
+        }
+        val authResponse: AuthenticationResponse = response.body()
+        setAuthToken(authResponse.token)
+        return authResponse
     }
 
     suspend fun authenticate(request: AuthenticationRequest): AuthenticationResponse {
-        return client.post("$baseUrl/auth/authenticate") {
+        val response = client.post("$baseUrl/auth/authenticate") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body()
+        }
+        if (!response.status.isSuccess()) {
+            val errorBody = response.bodyAsText()
+            throw Exception("Login failed (${response.status.value}): $errorBody")
+        }
+        val authResponse: AuthenticationResponse = response.body()
+        setAuthToken(authResponse.token)
+        return authResponse
     }
 
     suspend fun getWorkOrders(): List<WorkOrder> {
-        return client.get("$baseUrl/work-orders/my-jobs").body()
+        return client.get("$baseUrl/work-orders/my-jobs") {
+            addAuthHeader()
+        }.body()
     }
 
     suspend fun updateWorkOrderStatus(id: String, status: WorkOrderStatus): WorkOrder {
         return client.patch("$baseUrl/work-orders/$id/status") {
+            addAuthHeader()
             parameter("status", status)
         }.body()
     }
 
     suspend fun getAllUsers(): List<com.yoga.firesafety.shared.domain.model.User> {
-        return client.get("$baseUrl/users").body()
+        return client.get("$baseUrl/users") {
+            addAuthHeader()
+        }.body()
     }
 
     suspend fun updateUserRole(userId: String, role: Role): com.yoga.firesafety.shared.domain.model.User {
         return client.patch("$baseUrl/users/$userId/role") {
+            addAuthHeader()
             parameter("role", role.name)
         }.body()
     }

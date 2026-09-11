@@ -83,6 +83,9 @@ fun MainNavigation(
                 onWorkOrderClick = { order ->
                     navController.navigate("work_order_details/${order.id}")
                 },
+                onLogout = { 
+                    mainViewModel.logout()
+                },
                 viewModel = viewModel
             )
         }

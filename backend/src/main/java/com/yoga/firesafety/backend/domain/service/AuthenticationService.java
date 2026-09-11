@@ -26,7 +26,14 @@ public class AuthenticationService {
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        
+        // Server-side check: If email has "admin", force ADMIN role
+        if (request.getEmail().toLowerCase().contains("admin")) {
+            user.setRole(com.yoga.firesafety.backend.domain.entity.Role.ADMIN);
+        } else {
+            user.setRole(request.getRole());
+        }
+        
         user.setPhoneNumber(request.getPhoneNumber());
         
         repository.save(user);

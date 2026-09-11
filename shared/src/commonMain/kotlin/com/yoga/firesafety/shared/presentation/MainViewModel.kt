@@ -2,13 +2,17 @@ package com.yoga.firesafety.shared.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yoga.firesafety.shared.data.remote.FireSafetyApi
 import com.yoga.firesafety.shared.domain.repository.SessionRepository
 import com.yoga.firesafety.shared.domain.repository.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MainViewModel(private val sessionRepository: SessionRepository) : ViewModel() {
+class MainViewModel(
+    private val api: FireSafetyApi,
+    private val sessionRepository: SessionRepository
+) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState
 
@@ -20,6 +24,7 @@ class MainViewModel(private val sessionRepository: SessionRepository) : ViewMode
         viewModelScope.launch {
             val session = sessionRepository.getSession()
             if (session != null) {
+                api.setAuthToken(session.token)
                 _authState.value = AuthState.Authenticated(session)
             } else {
                 _authState.value = AuthState.Unauthenticated
@@ -29,6 +34,7 @@ class MainViewModel(private val sessionRepository: SessionRepository) : ViewMode
 
     fun logout() {
         viewModelScope.launch {
+            api.setAuthToken(null)
             sessionRepository.clearSession()
             _authState.value = AuthState.Unauthenticated
         }

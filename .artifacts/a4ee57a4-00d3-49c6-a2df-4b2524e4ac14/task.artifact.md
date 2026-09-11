@@ -1,0 +1,11 @@
+- `[ ]` **Build Configuration**
+    - `[ ]` Include `:webApp` in `settings.gradle.kts`
+    - `[ ]` Add `wasmJs` target to `shared/build.gradle.kts`
+- `[ ]` **Create Web Module**
+    - `[ ]` Create `webApp/build.gradle.kts`
+    - `[ ]` Create `webApp/src/wasmJsMain/resources/index.html`
+    - `[ ]` Create `webApp/src/wasmJsMain/kotlin/Main.kt`
+- `[ ]` **Shared Logic (Web)**
+    - `[ ]` Add `wasmJsMain` DriverFactory implementation in `:shared`
+- `[ ]` **Verification**
+    - `[ ]` Sync Gradle and run `:webApp:wasmJsBrowserRun`

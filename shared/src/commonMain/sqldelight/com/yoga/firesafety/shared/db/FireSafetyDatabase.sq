@@ -1,0 +1,70 @@
+import kotlin.Boolean;
+
+CREATE TABLE WorkOrderEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    buildingName TEXT NOT NULL,
+    address TEXT NOT NULL,
+    type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    scheduledAt TEXT,
+    scheduledEnd TEXT,
+    technicianName TEXT,
+    dispatcherNotes TEXT,
+    technicianNotes TEXT,
+    isSynced INTEGER AS Boolean DEFAULT 1
+);
+
+insertWorkOrder:
+INSERT OR REPLACE INTO WorkOrderEntity(id, buildingName, address, type, status, priority, scheduledAt, scheduledEnd, technicianName, dispatcherNotes, technicianNotes, isSynced)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllWorkOrders:
+SELECT * FROM WorkOrderEntity;
+
+selectWorkOrderById:
+SELECT * FROM WorkOrderEntity WHERE id = ?;
+
+updateWorkOrderStatus:
+UPDATE WorkOrderEntity SET status = ?, isSynced = 0 WHERE id = ?;
+
+deleteWorkOrder:
+DELETE FROM WorkOrderEntity WHERE id = ?;
+
+clearWorkOrders:
+DELETE FROM WorkOrderEntity;
+
+-- Inspection and Checklist Tables
+CREATE TABLE InspectionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    workOrderId TEXT NOT NULL,
+    technicianId TEXT NOT NULL,
+    status TEXT NOT NULL, -- IN_PROGRESS, COMPLETED
+    startedAt TEXT,
+    completedAt TEXT,
+    notes TEXT,
+    isSynced INTEGER AS Boolean DEFAULT 0
+);
+
+CREATE TABLE ChecklistItemEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    inspectionId TEXT NOT NULL,
+    questionKey TEXT NOT NULL,
+    response TEXT, -- YES, NO, N/A or text
+    observations TEXT,
+    isSynced INTEGER AS Boolean DEFAULT 0
+);
+
+insertInspection:
+INSERT OR REPLACE INTO InspectionEntity(id, workOrderId, technicianId, status, startedAt, completedAt, notes, isSynced)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+insertChecklistItem:
+INSERT OR REPLACE INTO ChecklistItemEntity(id, inspectionId, questionKey, response, observations, isSynced)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectInspectionByWorkOrder:
+SELECT * FROM InspectionEntity WHERE workOrderId = ?;
+
+selectChecklistItems:
+SELECT * FROM ChecklistItemEntity WHERE inspectionId = ?;

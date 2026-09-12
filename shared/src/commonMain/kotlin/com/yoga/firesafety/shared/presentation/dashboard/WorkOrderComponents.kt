@@ -21,82 +21,94 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(horizontal = 20.dp, vertical = 8.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             // Priority Bar
             val barColor = when(order.priority.uppercase()) {
-                "HIGH" -> Color(0xFFE53935)
-                "MEDIUM" -> Color(0xFF4CAF50)
+                "HIGH" -> Color(0xFFEF4444)
+                "MEDIUM" -> Color(0xFFF59E0B)
                 else -> MaterialTheme.colorScheme.primary
             }
             Box(modifier = Modifier.width(6.dp).fillMaxHeight().background(barColor))
             
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         order.type.replace("_", " "), 
-                        style = MaterialTheme.typography.titleMedium, 
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelLarge, 
+                        fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = when(order.status.name) {
+                            "NEW" -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+                            "ASSIGNED" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                        },
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             order.status.name,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = when(order.status.name) {
+                                "NEW" -> MaterialTheme.colorScheme.secondary
+                                "ASSIGNED" -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
                     order.buildingName, 
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.AccessTime, 
                         contentDescription = null, 
-                        modifier = Modifier.size(14.dp), 
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(16.dp), 
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        if (order.scheduledAt != null && order.scheduledEnd != null) 
-                            "${order.scheduledAt} - ${order.scheduledEnd}"
-                        else "Unscheduled", 
-                        style = MaterialTheme.typography.bodySmall, 
-                        color = if (order.scheduledAt != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+                        if (order.scheduledAt != null && order.scheduledEnd != null) {
+                            val start = order.scheduledAt.substringAfter("T").take(5)
+                            val end = order.scheduledEnd.substringAfter("T").take(5)
+                            "$start - $end"
+                        } else "Unscheduled", 
+                        style = MaterialTheme.typography.bodyMedium, 
+                        color = if (order.scheduledAt != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocationOn, 
                         contentDescription = null, 
-                        modifier = Modifier.size(14.dp), 
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(16.dp), 
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         order.address, 
                         style = MaterialTheme.typography.bodySmall,

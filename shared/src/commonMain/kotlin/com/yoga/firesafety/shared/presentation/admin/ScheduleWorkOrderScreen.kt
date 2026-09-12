@@ -3,6 +3,7 @@ package com.yoga.firesafety.shared.presentation.admin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -65,84 +66,104 @@ fun ScheduleWorkOrderScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Schedule Task", fontWeight = FontWeight.Bold) },
+                title = { Text("Schedule Task", fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { padding ->
         if (order == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Order not found")
+                Text("Order not found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF5F7FA))
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
                 // Admin Info Header
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(24.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.AccountCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Assigning by", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
-                            Text(adminName, style = MaterialTheme.typography.bodyLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Dispatcher Profile", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+                            Text(adminName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                 }
 
-                // Task Details Card
+                // Task Summary Card
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Surface(
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
                                     order.type.replace("_", " "),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    fontWeight = FontWeight.ExtraBold
                                 )
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            Text("ID: #${order.id}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                            Text("#${order.id}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(order.buildingName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text(order.address, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(order.buildingName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(order.address, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
                 
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 28.dp)) {
+                    Text("Scheduling Details", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
                     // Technician Selection
-                    Text("Technician", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     DropdownField(
-                        label = "Assign a professional",
+                        label = "Assign Technician",
                         selectedValue = selectedTech?.let { "${it.firstName} ${it.lastName}" } ?: "",
                         options = technicians.map { "${it.firstName} ${it.lastName}" },
                         onOptionSelected = { name ->
@@ -153,63 +174,31 @@ fun ScheduleWorkOrderScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     // Date Selection
-                    Text("Date", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    OutlinedCard(
-                        onClick = { showDatePicker = true },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.DateRange, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(if (selectedDate.isEmpty()) "Select Date" else selectedDate, fontWeight = if (selectedDate.isEmpty()) FontWeight.Normal else FontWeight.Medium)
-                        }
-                    }
+                    SchedulingPickerCard(
+                        label = "Visit Date",
+                        value = if (selectedDate.isEmpty()) "Choose Date" else selectedDate,
+                        icon = Icons.Default.CalendarMonth,
+                        onClick = { showDatePicker = true }
+                    )
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     // Time Selection Row
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Start Time", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            OutlinedCard(
-                                onClick = { showStartTimePicker = true },
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(if (selectedStartTime.isEmpty()) "Start" else selectedStartTime, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("End Time", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            OutlinedCard(
-                                onClick = { showEndTimePicker = true },
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(if (selectedEndTime.isEmpty()) "End" else selectedEndTime, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
+                        SchedulingPickerCard(
+                            modifier = Modifier.weight(1f),
+                            label = "Arrival",
+                            value = if (selectedStartTime.isEmpty()) "Start" else selectedStartTime,
+                            icon = Icons.Default.AccessTime,
+                            onClick = { showStartTimePicker = true }
+                        )
+                        SchedulingPickerCard(
+                            modifier = Modifier.weight(1f),
+                            label = "Departure",
+                            value = if (selectedEndTime.isEmpty()) "End" else selectedEndTime,
+                            icon = Icons.Default.AccessTime,
+                            onClick = { showEndTimePicker = true }
+                        )
                     }
                     
                     Spacer(modifier = Modifier.height(48.dp))
@@ -221,14 +210,15 @@ fun ScheduleWorkOrderScreen(
                             workOrderViewModel.assignOrder(orderId, selectedTech?.id ?: "", isoStart, isoEnd)
                             onAssigned()
                         },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        shape = RoundedCornerShape(20.dp),
                         enabled = selectedTech != null && selectedDate.isNotEmpty() && selectedStartTime.isNotEmpty() && selectedEndTime.isNotEmpty(),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                     ) {
-                        Text("CONFIRM ASSIGNMENT", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text("DISPATCH TECHNICIAN", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.25.sp)
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
@@ -282,6 +272,35 @@ fun ScheduleWorkOrderScreen(
             }
         ) {
             TimePicker(state = endTimePickerState)
+        }
+    }
+}
+
+@Composable
+fun SchedulingPickerCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Column(modifier = modifier) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
+        OutlinedCard(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = if (value.contains("Choose") || value.contains("Start") || value.contains("End")) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface)
+            }
         }
     }
 }

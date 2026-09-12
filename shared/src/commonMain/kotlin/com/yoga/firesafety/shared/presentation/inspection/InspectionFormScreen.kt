@@ -1,5 +1,6 @@
 package com.yoga.firesafety.shared.presentation.inspection
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,9 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,38 +27,36 @@ fun InspectionFormScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                title = { Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }
                 },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         bottomBar = {
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
                 shadowElevation = 8.dp
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(20.dp)
                 ) {
                     Button(
                         onClick = onSaveClick,
-                        modifier = Modifier.weight(1f).height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                        modifier = Modifier.weight(1f).height(60.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
-                        Text("SAVE REPORT", fontWeight = FontWeight.Bold)
+                        Text("SAVE REPORT", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                     }
                 }
             }
@@ -73,20 +72,32 @@ fun InspectionFormScreen(
             // Status Info
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
-                shadowElevation = 1.dp
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 1.dp,
+                tonalElevation = 1.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Last updated", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                        Text("Just now", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                        Text("Version", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("v2.4.10", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("Status", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                        Text("In Progress", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text("Status", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                "IN PROGRESS", 
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall, 
+                                color = MaterialTheme.colorScheme.primary, 
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
                     }
                 }
             }
@@ -106,19 +117,20 @@ fun InspectionFormScreen(
 fun DeficiencyForm() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("General Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(24.dp)) {
+            Text("General Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(20.dp))
             
             var techName by remember { mutableStateOf("Vikram Singh") }
             FormField("Technician Name", techName) { techName = it }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Deficiency Details", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            Text("Deficiency Details", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(20.dp))
 
             var fireDef by remember { mutableStateOf("") }
             var sprinklerDef by remember { mutableStateOf("") }
@@ -137,16 +149,17 @@ fun DeficiencyForm() {
 fun MonthlyInspectionForm() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Fire Alarm Test", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(24.dp)) {
+            Text("Fire Alarm System", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(20.dp))
             
             var selectedMonth by remember { mutableStateOf("") }
             DropdownField(
-                label = "Month of Inspection",
+                label = "Inspection Month",
                 selectedValue = selectedMonth,
                 options = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
                 onOptionSelected = { selectedMonth = it }
@@ -154,7 +167,7 @@ fun MonthlyInspectionForm() {
             
             var acPower by remember { mutableStateOf("") }
             DropdownField(
-                label = "AC Power Light On Upon Arrival?",
+                label = "AC Power Light On Arrival?",
                 selectedValue = acPower,
                 options = listOf("Yes", "No"),
                 onOptionSelected = { acPower = it }
@@ -162,7 +175,7 @@ fun MonthlyInspectionForm() {
             
             var systemNormal by remember { mutableStateOf("") }
             DropdownField(
-                label = "System Normal Upon Arrival?",
+                label = "System Normal On Arrival?",
                 selectedValue = systemNormal,
                 options = listOf("Yes", "No"),
                 onOptionSelected = { systemNormal = it }
@@ -171,64 +184,66 @@ fun MonthlyInspectionForm() {
             var condition by remember { mutableStateOf("") }
             var deviceLoc by remember { mutableStateOf("") }
             
-            FormField("If No, Explain Condition", condition) { condition = it }
-            FormField("Alarm Initiating Device Location", deviceLoc) { deviceLoc = it }
+            FormField("Condition Explanation", condition) { condition = it }
+            FormField("Initiating Device Location", deviceLoc) { deviceLoc = it }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Hose & Lighting", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            Text("Equipment Status", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(20.dp))
             
-            Text("Fire hose stations checked?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text("Fire hose stations checked?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             var hoseStation by remember { mutableStateOf("") }
             DropdownField(
-                label = "Select Option",
+                label = "Select Status",
                 selectedValue = hoseStation,
                 options = listOf("Yes", "No"),
                 onOptionSelected = { hoseStation = it }
             )
             var hoseReason by remember { mutableStateOf("") }
-            FormField("If no, specify reason", hoseReason) { hoseReason = it }
+            FormField("Reason (if no)", hoseReason) { hoseReason = it }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            Text("Emergency lighting tested?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text("Emergency lighting tested?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             var emergencyLight by remember { mutableStateOf("") }
             DropdownField(
-                label = "Select Option",
+                label = "Select Status",
                 selectedValue = emergencyLight,
                 options = listOf("Yes", "No"),
                 onOptionSelected = { emergencyLight = it }
             )
             var lightReason by remember { mutableStateOf("") }
-            FormField("If no, specify reason", lightReason) { lightReason = it }
+            FormField("Reason (if no)", lightReason) { lightReason = it }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Verification", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            Text("Compliance Verification", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(20.dp))
             
             var inspectorName by remember { mutableStateOf("") }
             var comments by remember { mutableStateOf("") }
             
-            FormField("Inspector Name(s)", inspectorName) { inspectorName = it }
-            FormField("Additional Comments", comments) { comments = it }
+            FormField("Inspector Full Name", inspectorName) { inspectorName = it }
+            FormField("Final Observation Comments", comments) { comments = it }
         }
     }
 }
 
 @Composable
 fun FormField(label: String, value: String, onValueChange: (String) -> Unit) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+    Column(modifier = Modifier.padding(vertical = 10.dp)) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color.LightGray,
-                focusedContainerColor = Color(0xFFF8FAFC)
-            )
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge
         )
     }
 }
@@ -242,37 +257,38 @@ fun DropdownField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+    Column(modifier = Modifier.padding(vertical = 10.dp)) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
         Box {
             OutlinedCard(
                 onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.outlinedCardColors(containerColor = Color(0xFFF8FAFC)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (selectedValue.isEmpty()) "Select..." else selectedValue,
-                        color = if (selectedValue.isEmpty()) Color.Gray else Color.Black,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = if (selectedValue.isEmpty()) "Choose Option" else selectedValue,
+                        color = if (selectedValue.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (selectedValue.isEmpty()) FontWeight.Normal else FontWeight.Medium
                     )
-                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
                 }
             }
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth(0.9f)
+                modifier = Modifier.fillMaxWidth(0.85f).background(MaterialTheme.colorScheme.surface)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(option, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
                             onOptionSelected(option)
                             expanded = false

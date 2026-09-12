@@ -2,15 +2,16 @@ package com.yoga.firesafety.shared.presentation.admin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
@@ -35,17 +36,24 @@ fun CreateWorkOrderScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("New Work Order", fontWeight = FontWeight.Bold) },
+                title = { Text("New Work Order", fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.Close, contentDescription = "Cancel")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         bottomBar = {
-            Surface(color = Color.White, shadowElevation = 8.dp) {
+            Surface(
+                color = MaterialTheme.colorScheme.surface, 
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp
+            ) {
                 Button(
                     onClick = {
                         val newOrder = WorkOrder(
@@ -62,50 +70,60 @@ fun CreateWorkOrderScreen(
                         viewModel.createOrder(newOrder)
                         onOrderCreated()
                     },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(20.dp).height(60.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    enabled = buildingName.isNotBlank() && address.isNotBlank()
+                    enabled = buildingName.isNotBlank() && address.isNotBlank(),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
-                    Text("CREATE ORDER", fontWeight = FontWeight.Bold)
+                    Text("CREATE WORK ORDER", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("Building Details", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            FormField("Building Name", buildingName) { buildingName = it }
-            FormField("Full Address", address) { address = it }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Service Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            DropdownField(
-                label = "Service Type (e.g. INSPECTION, REPAIR)",
-                selectedValue = type,
-                options = listOf("INSPECTION", "REPAIR", "MAINTENANCE", "EMERGENCY"),
-                onOptionSelected = { type = it }
-            )
-            
-            DropdownField(
-                label = "Priority (HIGH, MEDIUM, LOW)",
-                selectedValue = priority,
-                options = listOf("LOW", "MEDIUM", "HIGH", "CRITICAL"),
-                onOptionSelected = { priority = it }
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            FormField("Dispatcher Notes", notes) { notes = it }
+            Card(
+                modifier = Modifier.padding(20.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text("Building Details", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
+                    FormField("Building Name", buildingName) { buildingName = it }
+                    FormField("Full Address", address) { address = it }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Text("Service Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
+                    DropdownField(
+                        label = "Service Type",
+                        selectedValue = type,
+                        options = listOf("INSPECTION", "REPAIR", "MAINTENANCE", "EMERGENCY"),
+                        onOptionSelected = { type = it }
+                    )
+                    
+                    DropdownField(
+                        label = "Priority Level",
+                        selectedValue = priority,
+                        options = listOf("LOW", "MEDIUM", "HIGH", "CRITICAL"),
+                        onOptionSelected = { priority = it }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    FormField("Dispatcher Notes (Optional)", notes) { notes = it }
+                }
+            }
         }
     }
 }

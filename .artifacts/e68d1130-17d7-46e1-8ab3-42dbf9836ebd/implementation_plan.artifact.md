@@ -1,61 +1,45 @@
-# Implementation Plan - Admin Names & Premium Dark UI
+# Implementation Plan - Ultimate Premium Dark UI
 
-This plan aims to personalize the "Schedule Task" screen by showing the Admin's name and completely overhaul the app's visual design with a premium Dark Theme and refined UI components.
+This plan aims to deliver the "best" UI experience by refining the Dark Theme to be ultra-premium and ensuring every single component in the app correctly responds to theme changes.
 
 ## Proposed Changes
 
-### [backend] component
-
-#### [MODIFY] [AuthenticationResponse.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/dto/AuthenticationResponse.java)
-- Add `firstName` and `lastName` fields to the response object.
-
-#### [MODIFY] [AuthenticationService.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/AuthenticationService.java)
-- Populate `firstName` and `lastName` in the `AuthenticationResponse` during registration and login.
-
----
-
-### [shared] component (Data & Logic)
-
-#### [MODIFY] [AuthModels.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/remote/dto/AuthModels.kt)
-- Add `firstName` and `lastName` to the `AuthenticationResponse` Kotlin data class.
-
-#### [MODIFY] [FireSafetyDatabase.sq](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/sqldelight/com/yoga/firesafety/shared/db/FireSafetyDatabase.sq)
-- Update `SessionEntity` to store `firstName` and `lastName`.
-- Update `saveSession` query.
-
-#### [MODIFY] [SessionRepository.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/repository/SessionRepository.kt) & [SessionRepositoryImpl.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/repository/SessionRepositoryImpl.kt)
-- Update `UserSession` model and repository methods to include names.
-
-#### [MODIFY] ViewModels (`LoginViewModel`, `SignupViewModel`, `MainViewModel`)
-- Update session management logic to handle user names.
-
----
-
-### [shared] component (Premium UI & Dark Theme)
+### [shared] component (Theming)
 
 #### [MODIFY] [DesignSystem.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/theme/DesignSystem.kt)
-- Define a comprehensive `DarkColorScheme` using a sleek "Deep Midnight" palette.
-- Refine `AppColors` for better contrast in both themes.
+- **Deep Dark Palette**: Refine the dark theme to use an AMOLED-friendly background (`#000000` or very deep navy `#0A0C14`).
+- **Glassmorphism**: Use surface variants with slight transparency for cards to create a modern layered look.
+- **Accents**: Use vibrant primary and secondary colors that "pop" against the dark background.
+- **Typography**: Refine font weights and sizes for a more professional feel.
 
 #### [MODIFY] [FireSafetyTheme.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/theme/FireSafetyTheme.kt)
-- Enable theme switching based on the `darkTheme` parameter.
+- Ensure all `MaterialTheme` parameters (colorScheme, typography, shapes) are properly configured.
 
-#### [MODIFY] Screen Refinement (All Screens)
-- **Global**: Replace hardcoded `Color.White`, `Color.Black`, etc., with `MaterialTheme.colorScheme` tokens.
-- **Login/Signup**: Improve the gradient and card styling for a "premium" feel in dark mode.
-- **Dashboard**: Redesign work order cards with better elevation, padding, and status indicators.
-- **Schedule Task**:
-    - Display **"Assigned by: [First Name] [Last Name]"** at the top.
-    - Polish the date and time picker cards.
+---
+
+### [shared] component (Screens Overhaul)
+
+I will systematically go through every screen and replace hardcoded colors (`Color.White`, `Color.Black`, `Color.Gray`, `#F5F7FA`, etc.) with theme-aware tokens.
+
+#### [MODIFY] All Screens:
+- [LoginScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginScreen.kt)
+- [SignupScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/SignupScreen.kt)
+- [AdminDashboardScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/AdminDashboardScreen.kt)
+- [WorkOrderListScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderListScreen.kt)
+- [UserManagementScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/UserManagementScreen.kt)
+- [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
+- [WorkOrderDetailsScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderDetailsScreen.kt)
+- [InspectionFormScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/inspection/InspectionFormScreen.kt)
+- [WorkOrderComponents.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderComponents.kt)
+
+### Enhancements:
+- **Gradients**: More sophisticated gradients for login/signup backgrounds.
+- **Shadows & Elevation**: Use `tonalElevation` and refined shapes (more rounded corners, e.g., 24dp).
+- **Icons**: Use high-quality icons with consistent tinting.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Push Backend**: Deploy the name support to Render.
-2. **Login/Signup**: Verify that your name is correctly saved after logging in.
-3. **Toggle Theme**: Switch the phone to Dark Mode.
-4. **Visual Inspection**:
-    - Check the Login screen for "premium" dark aesthetics.
-    - Verify that the Admin Dashboard looks sleek and readable.
-    - Confirm the "Schedule Task" screen shows your **Name** instead of your email.
-    - Check that the Start/End times look great in the new UI.
+1. **Toggle Theme**: Switch the phone to Dark Mode and verify every screen looks "premium".
+2. **Component Check**: Ensure text is readable (high contrast) and icons are clearly visible.
+3. **Consistency**: Verify that all screens use the same palette and spacing.

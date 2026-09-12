@@ -11,9 +11,13 @@ private val LightColorScheme = lightColorScheme(
     secondary = AppColors.Secondary,
     background = AppColors.Background,
     surface = AppColors.Surface,
+    error = AppColors.Error,
     onPrimary = AppColors.OnPrimary,
+    onSecondary = AppColors.OnSecondary,
     onBackground = AppColors.OnBackground,
-    onSurface = AppColors.OnSurface
+    onSurface = AppColors.OnSurface,
+    onSurfaceVariant = AppColors.OnSurfaceVariant,
+    outline = AppColors.Outline
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -21,9 +25,13 @@ private val DarkColorScheme = darkColorScheme(
     secondary = AppColors.DarkSecondary,
     background = AppColors.DarkBackground,
     surface = AppColors.DarkSurface,
+    error = AppColors.Error,
     onPrimary = AppColors.DarkOnPrimary,
+    onSecondary = AppColors.DarkOnSecondary,
     onBackground = AppColors.DarkOnBackground,
-    onSurface = AppColors.DarkOnSurface
+    onSurface = AppColors.DarkOnSurface,
+    onSurfaceVariant = AppColors.DarkOnSurfaceVariant,
+    outline = AppColors.DarkOutline
 )
 
 @Composable

@@ -8,62 +8,75 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 object AppColors {
-    // Light Palette
-    val Primary = Color(0xFF0D47A1)
-    val Secondary = Color(0xFF2E7D32)
-    val Background = Color(0xFFF5F7FA)
+    // Premium Light Palette
+    val Primary = Color(0xFF1E3A8A) // Refined Navy
+    val Secondary = Color(0xFF10B981) // Modern Emerald
+    val Background = Color(0xFFF8FAFC)
     val Surface = Color(0xFFFFFFFF)
     val OnPrimary = Color(0xFFFFFFFF)
-    val OnBackground = Color(0xFF1A1C1E)
-    val OnSurface = Color(0xFF1A1C1E)
+    val OnSecondary = Color(0xFFFFFFFF)
+    val OnBackground = Color(0xFF0F172A)
+    val OnSurface = Color(0xFF0F172A)
+    val OnSurfaceVariant = Color(0xFF64748B)
+    val Outline = Color(0xFFCBD5E1)
 
-    // Dark Palette (Deep Midnight)
-    val DarkPrimary = Color(0xFFD0E4FF)
-    val DarkSecondary = Color(0xFF81C784)
-    val DarkBackground = Color(0xFF0F111A)
-    val DarkSurface = Color(0xFF1B1E2B)
-    val DarkOnPrimary = Color(0xFF003258)
-    val DarkOnBackground = Color(0xFFE2E2E6)
-    val DarkOnSurface = Color(0xFFE2E2E6)
+    // Ultimate Dark Palette (Deep Midnight / AMOLED)
+    val DarkPrimary = Color(0xFF60A5FA) // Vibrant Blue
+    val DarkSecondary = Color(0xFF34D399) // Vibrant Emerald
+    val DarkBackground = Color(0xFF020617) // Deepest Navy
+    val DarkSurface = Color(0xFF0F172A) // Slate Navy
+    val DarkOnPrimary = Color(0xFF020617)
+    val DarkOnSecondary = Color(0xFF020617)
+    val DarkOnBackground = Color(0xFFF8FAFC)
+    val DarkOnSurface = Color(0xFFF8FAFC)
+    val DarkOnSurfaceVariant = Color(0xFF94A3B8)
+    val DarkOutline = Color(0xFF334155)
     
-    val Error = Color(0xFFB00020)
-    val Outline = Color(0xFF74777F)
+    val Error = Color(0xFFEF4444)
+    val Success = Color(0xFF10B981)
 }
 
 val AppTypography = Typography(
     headlineLarge = TextStyle(
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.ExtraBold,
         fontSize = 32.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.5).sp
     ),
     headlineMedium = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.25).sp
     ),
     titleLarge = TextStyle(
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        letterSpacing = 0.15.sp
+        fontSize = 18.sp,
+        letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     labelLarge = TextStyle(
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
         letterSpacing = 0.1.sp
+    ),
+    labelSmall = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        letterSpacing = 0.5.sp
     )
 )

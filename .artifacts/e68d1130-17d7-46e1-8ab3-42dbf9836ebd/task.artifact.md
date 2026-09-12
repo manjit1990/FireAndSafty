@@ -1,18 +1,14 @@
-# Tasks - Admin Names & Premium Dark UI
+# Tasks - Ultimate Premium Dark UI
 
-## Data Layer (Admin Name Support)
-- [x] Backend: Update `AuthenticationResponse.java` with names
-- [x] Backend: Update `AuthenticationService.java` logic
-- [x] Shared: Update `AuthModels.kt` DTO
-- [x] Shared: Update `FireSafetyDatabase.sq` session table
-- [x] Shared: Update `SessionRepository` & `SessionRepositoryImpl`
-- [x] Shared: Update ViewModels for session handling
-
-## UI Layer (Premium Dark Theme)
-- [x] Shared: Redefine `AppColors` and `AppTypography` in `DesignSystem.kt`
-- [x] Shared: Update `FireSafetyTheme.kt` for Dark Mode support
-- [x] Shared: Polish Login/Signup screens
-- [x] Shared: Polish Admin Dashboard & User Management
-- [x] Shared: Polish Schedule Task screen (show Admin name)
-- [x] Shared: Polish Work Order Details screen
-- [ ] Verify functionality and theme switching
+- [x] Redefine `AppColors` and `AppTypography` in `DesignSystem.kt`
+- [x] Update `FireSafetyTheme.kt` for full Dark Mode support
+- [x] Refactor `LoginScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `SignupScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `AdminDashboardScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `WorkOrderListScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `UserManagementScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `ScheduleWorkOrderScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `WorkOrderDetailsScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `InspectionFormScreen.kt` (Theme support + UI Polish)
+- [x] Refactor `WorkOrderComponents.kt` (Theme support + UI Polish)
+- [x] Verify UI on all screens in both themes

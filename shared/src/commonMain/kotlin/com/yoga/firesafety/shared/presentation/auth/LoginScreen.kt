@@ -172,9 +172,9 @@ fun LoginScreen(
                     if (state is LoginState.Error) {
                         val fullMessage = (state as LoginState.Error).message
                         val displayMessage = when {
-                            fullMessage.contains("Bad credentials") -> "Invalid email or password"
-                            fullMessage.contains("Connect") -> "Server is starting... please wait and try again"
-                            else -> "Login failed. Please try again."
+                            fullMessage.contains("Bad credentials") || fullMessage.contains("Invalid email") -> "Invalid email or password"
+                            fullMessage.contains("Connect") || fullMessage.contains("timeout") -> "Server is starting... please wait and try again"
+                            else -> fullMessage // Show full error for debugging
                         }
                         
                         Text(

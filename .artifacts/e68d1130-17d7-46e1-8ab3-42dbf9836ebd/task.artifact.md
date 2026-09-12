@@ -1,6 +1,4 @@
-# Tasks - Seamless Demo Experience
+# Tasks - Fix Backend Deployment
 
-- [x] Shared: Add "Quick Login" buttons to `LoginScreen.kt`
-- [x] Shared: Clean up error message display in `LoginScreen.kt`
-- [x] Backend: Handle `BadCredentialsException` in `GlobalExceptionHandler.java`
-- [ ] Verify functionality
+- [x] Create `V6__add_scheduled_end_to_work_order.sql` migration file
+- [ ] Verify deployment on Render after user push

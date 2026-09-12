@@ -1,37 +1,23 @@
-# Implementation Plan - Seamless Demo Experience
+# Implementation Plan - Fix Backend Deployment Failure
 
-This plan addresses the frustration of repeated "Bad credentials" errors by making the login process more robust and providing quick-access demo accounts.
+The backend deployment is failing because I added a new field (`scheduledEnd`) to the `WorkOrder` entity, but I didn't update the actual database table on Render. Since Hibernate is set to "validate", it crashes when it sees the database is missing that column.
 
 ## Proposed Changes
 
-### [shared] component
-
-#### [MODIFY] [LoginScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginScreen.kt)
-- **Demo Buttons**: Add two professional "Quick Login" chips/buttons below the Sign In button:
-    - **Login as Admin** (Auto-fills `admin@demo.com` / `password`)
-    - **Login as Technician** (Auto-fills `tech@demo.com` / `password`)
-- **Clearer Errors**: Update the error display to show only the essential message (e.g., "Invalid Email or Password") instead of the full JSON technical details.
-
----
-
 ### [backend] component
 
-#### [MODIFY] [GlobalExceptionHandler.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/exception/GlobalExceptionHandler.java)
-- Add a specific handler for `BadCredentialsException`.
-- Return an `Unauthorized (401)` status instead of `Internal Server Error (500)`.
-- Provide a clean, user-friendly error message.
-
-#### [MODIFY] [V5__demo_data.sql](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/db/migration/V5__demo_data.sql)
-- Ensure the demo accounts are clearly defined and persistent.
+#### [NEW] [V6__add_scheduled_end_to_work_order.sql](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/db/migration/V6__add_scheduled_end_to_work_order.sql)
+- Create a new Flyway migration file to add the `scheduled_end` column to the `work_orders` table.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Push Backend**: Deploy the updated error handling to Render.
-2. **Test Quick Login**:
-    - Open the app.
-    - Click "Login as Admin".
-    - Verify it auto-fills and logs you in instantly.
-3. **Test Bad Credentials**:
-    - Type a wrong password.
-    - Verify the error message is now clean ("Invalid Email or Password") and doesn't show technical JSON.
+1. **Apply Change**: I will create the migration file.
+2. **Push to GitHub**: You must push this change to GitHub:
+    ```bash
+    git add .
+    git commit -m "Add missing DB migration for scheduledEnd"
+    git push
+    ```
+3. **Wait for Render**: Wait for Render to show "Live".
+4. **Login**: The app should now start and allow login correctly.

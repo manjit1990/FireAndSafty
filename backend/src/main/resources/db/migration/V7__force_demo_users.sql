@@ -10,3 +10,7 @@ SET password = EXCLUDED.password,
     role = EXCLUDED.role,
     first_name = EXCLUDED.first_name,
     last_name = EXCLUDED.last_name;
+
+-- Ensure IDs are also consistent in case of email-only conflicts
+UPDATE users SET id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' WHERE email = 'admin@demo.com';
+UPDATE users SET id = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12' WHERE email = 'tech@demo.com';

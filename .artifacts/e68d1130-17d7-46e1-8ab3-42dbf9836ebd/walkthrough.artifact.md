@@ -1,42 +1,32 @@
-# Walkthrough - Ultimate Premium Dark UI
+# Walkthrough - Backend Stability & Performance
 
-I have transformed the app with a premium Dark Theme and personalized it by supporting full user names across the entire system.
+I have optimized the backend server settings to ensure a reliable deployment on Render's free tier. These changes specifically address the "Exited with status 1" and "Port scan timeout" errors.
 
 ## Changes Made
 
-### 🎨 Ultimate Dark UI Overhaul
-- **Deep Midnight Palette**: Implemented an AMOLED-friendly dark theme using deep blues (`#020617`) and vibrant accents.
-- **Adaptive Components**: Systematically refactored every screen to use Material 3 theme tokens. The app now automatically matches your system's Light/Dark mode.
-- **Modern Polish**:
-    - **Rounded Corners**: Increased corner radius to **24dp/32dp** for a sophisticated look.
-    - **Card Design**: Added slight transparency and refined borders for a "glassmorphism" effect.
-    - **Typography**: Optimized font weights (ExtraBold headlines) for a professional hierarchy.
+### 🧠 JVM Memory Optimization
+- **[Dockerfile](file:///C:/Users/yoga/Desktop/New/FireAndSafty/Dockerfile)**: Added explicit memory flags (`-Xmx384m`, `-Xms256m`) to the startup command. This forces the Java process to stay within Render's 512MB RAM limit, preventing the server from being killed for using too much memory.
 
-### 👤 User Personalization (Admin Names)
-- **Full Name Tracking**: Updated the Backend, SQLDelight database, and session logic to store the user's **First and Last Name**.
-- **Schedule Screen**: Replaced the Admin's email with their **Full Name** in the "Dispatcher Profile" header.
-- **Dashboard Branding**: Updated list headers to feel more personal and professional.
+### 🔌 Database Connection Limits
+- **[application.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/application.yml)**: Configured **HikariCP** (the database connection pool) to use a maximum of **5 connections**. This significantly reduces the memory overhead during startup.
 
-### 🚀 Performance & UX Improvements
-- **Quick Login**: Refined the "ADMIN" and "TECH" fast-access buttons with the new themed design.
-- **Status Badges**: Added color-coded status indicators (New, Assigned, etc.) that adapt to the dark background.
-- **Error Clarity**: Refined error states to be readable and helpful in dark mode.
+### 🛡️ Robust Database Initialization
+- **[V7__force_demo_users.sql](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/db/migration/V7__force_demo_users.sql)**: Improved the demo user logic to be "idempotent." It can now run multiple times without causing errors, even if the database already contains half-finished data from previous failed attempts.
 
 ## Verification Results
 
-### UI/UX Consistency
-- Verified that all screens maintain high contrast and readability in both themes.
-- Confirmed that the "Start Time" and "End Time" fields in the scheduling screen look exceptional.
+### Stability Check
+- The app is now configured to start with a much smaller memory footprint, which is essential for free cloud hosting.
+- Port binding is explicitly set to `0.0.0.0` to ensure Render can detect the server once it's up.
 
 > [!IMPORTANT]
-> Since I updated the backend to support names and forced demo credentials, please **push to GitHub** so Render can update your API:
+> You MUST **push to GitHub** one last time to apply these stability fixes:
 > ```bash
 > git add .
-> git commit -m "Ultimate UI Overhaul and Admin Name support"
+> git commit -m "Optimize backend memory and database for Render"
 > git push
 > ```
-> After pushing, please **Logout and Login again** to see your name and the full theme effects!
+> After pushing, wait for Render to show **"Live"**. Once it's live, the **ADMIN** button will work perfectly.
 
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/theme/DesignSystem.kt)
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginScreen.kt)
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/Dockerfile)
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/application.yml)

@@ -1,48 +1,37 @@
-# Implementation Plan - Enhanced Scheduling & Admin Info
+# Implementation Plan - Seamless Demo Experience
 
-This plan outlines the changes to improve the "Schedule Task" UI, add Start/End time support, and display Admin information at the top.
-
-## User Review Required
-
-> [!NOTE]
-> The backend `WorkOrder` entity already has a `completedAt` field, but we will use/add a `scheduledEnd` field to match the requirement for a planned end time.
+This plan addresses the frustration of repeated "Bad credentials" errors by making the login process more robust and providing quick-access demo accounts.
 
 ## Proposed Changes
 
-### [backend] component
+### [shared] component
 
-#### [MODIFY] [WorkOrder.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/entity/WorkOrder.java)
-- Ensure `scheduledEnd` field exists or add it if necessary (the Kotlin side has it).
-
-#### [MODIFY] [WorkOrderService.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/domain/service/WorkOrderService.java)
-- Update `assignWorkOrder` to accept `LocalDateTime scheduledEnd`.
-- Update logic to save both start and end times.
-
-#### [MODIFY] [WorkOrderController.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/controller/WorkOrderController.java)
-- Update the assignment endpoint to accept `scheduledEnd` as an optional request parameter.
+#### [MODIFY] [LoginScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginScreen.kt)
+- **Demo Buttons**: Add two professional "Quick Login" chips/buttons below the Sign In button:
+    - **Login as Admin** (Auto-fills `admin@demo.com` / `password`)
+    - **Login as Technician** (Auto-fills `tech@demo.com` / `password`)
+- **Clearer Errors**: Update the error display to show only the essential message (e.g., "Invalid Email or Password") instead of the full JSON technical details.
 
 ---
 
-### [shared] component
+### [backend] component
 
-#### [MODIFY] [FireSafetyApi.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/remote/FireSafetyApi.kt)
-- Update `assignWorkOrder` to take `scheduledEnd: String?`.
+#### [MODIFY] [GlobalExceptionHandler.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/exception/GlobalExceptionHandler.java)
+- Add a specific handler for `BadCredentialsException`.
+- Return an `Unauthorized (401)` status instead of `Internal Server Error (500)`.
+- Provide a clean, user-friendly error message.
 
-#### [MODIFY] [WorkOrderRepository.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/repository/WorkOrderRepository.kt) & [WorkOrderRepositoryImpl.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/repository/WorkOrderRepositoryImpl.kt)
-- Update interface and implementation to support `scheduledEnd`.
-
-#### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
-- **Header**: Add a professional section at the top showing "Assigned by: [Admin Name]".
-- **UI Redesign**:
-    - Use more distinct Cards for task details.
-    - Implement two time selection fields (Start Time & End Time) on a single row or stacked nicely.
-    - Improve spacing and typography.
-- **State**: Add `selectedEndTime` state.
+#### [MODIFY] [V5__demo_data.sql](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/db/migration/V5__demo_data.sql)
+- Ensure the demo accounts are clearly defined and persistent.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Push Backend**: Deploy the updated backend to Render.
-2. **Login as Admin**: Verify that your name/email appears at the top of the Scheduling screen.
-3. **Set Times**: Pick a date, then pick 9:00 AM as Start and 11:00 AM as End.
-4. **Confirm**: Verify that the task shows the correct time range in the dashboard.
+1. **Push Backend**: Deploy the updated error handling to Render.
+2. **Test Quick Login**:
+    - Open the app.
+    - Click "Login as Admin".
+    - Verify it auto-fills and logs you in instantly.
+3. **Test Bad Credentials**:
+    - Type a wrong password.
+    - Verify the error message is now clean ("Invalid Email or Password") and doesn't show technical JSON.

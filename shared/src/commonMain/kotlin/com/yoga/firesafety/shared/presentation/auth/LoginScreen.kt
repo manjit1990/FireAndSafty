@@ -170,12 +170,61 @@ fun LoginScreen(
                     }
                     
                     if (state is LoginState.Error) {
+                        val fullMessage = (state as LoginState.Error).message
+                        val displayMessage = when {
+                            fullMessage.contains("Bad credentials") -> "Invalid email or password"
+                            fullMessage.contains("Connect") -> "Server is starting... please wait and try again"
+                            else -> "Login failed. Please try again."
+                        }
+                        
                         Text(
-                            (state as LoginState.Error).message,
+                            displayMessage,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 16.dp),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Quick Login Section
+                    Text(
+                        "QUICK LOGIN",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { 
+                                email = "admin@demo.com"
+                                password = "password"
+                                viewModel.login(email, password)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("ADMIN", style = MaterialTheme.typography.labelSmall)
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { 
+                                email = "tech@demo.com"
+                                password = "password"
+                                viewModel.login(email, password)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("TECH", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }

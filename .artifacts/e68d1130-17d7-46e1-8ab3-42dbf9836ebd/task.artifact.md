@@ -1,4 +1,4 @@
-# Tasks - Fix Backend Deployment
+# Tasks - Force Demo Credentials
 
-- [x] Create `V6__add_scheduled_end_to_work_order.sql` migration file
-- [ ] Verify deployment on Render after user push
+- [x] Create `V7__force_demo_users.sql` migration file
+- [ ] Verify Admin login works after user push

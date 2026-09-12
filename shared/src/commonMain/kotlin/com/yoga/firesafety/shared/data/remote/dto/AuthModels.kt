@@ -22,5 +22,7 @@ data class AuthenticationRequest(
 @Serializable
 data class AuthenticationResponse(
     val token: String,
-    val role: Role
+    val role: Role,
+    val firstName: String? = null,
+    val lastName: String? = null
 )

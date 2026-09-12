@@ -11,13 +11,19 @@ private val LightColorScheme = lightColorScheme(
     secondary = AppColors.Secondary,
     background = AppColors.Background,
     surface = AppColors.Surface,
-    error = AppColors.Error,
     onPrimary = AppColors.OnPrimary,
-    onSecondary = AppColors.OnSecondary,
     onBackground = AppColors.OnBackground,
-    onSurface = AppColors.OnSurface,
-    onSurfaceVariant = AppColors.OnSurfaceVariant,
-    outline = AppColors.Outline
+    onSurface = AppColors.OnSurface
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = AppColors.DarkPrimary,
+    secondary = AppColors.DarkSecondary,
+    background = AppColors.DarkBackground,
+    surface = AppColors.DarkSurface,
+    onPrimary = AppColors.DarkOnPrimary,
+    onBackground = AppColors.DarkOnBackground,
+    onSurface = AppColors.DarkOnSurface
 )
 
 @Composable
@@ -25,8 +31,7 @@ fun FireSafetyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // We'll stick to LightColorScheme for the demo to match screenshots
-    val colorScheme = LightColorScheme
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

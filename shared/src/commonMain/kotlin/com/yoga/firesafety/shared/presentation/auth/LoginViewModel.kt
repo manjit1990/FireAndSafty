@@ -27,7 +27,7 @@ class LoginViewModel(
                 val effectiveRole = if (email.lowercase().contains("admin")) Role.ADMIN else response.role
                 
                 // Save session for auto-login
-                sessionRepository.saveSession(email, effectiveRole, response.token)
+                sessionRepository.saveSession(email, response.firstName, response.lastName, effectiveRole, response.token)
                 
                 _uiState.value = LoginState.Success(effectiveRole)
             } catch (e: Exception) {

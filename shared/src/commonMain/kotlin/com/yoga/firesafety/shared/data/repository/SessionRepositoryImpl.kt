@@ -11,12 +11,12 @@ class SessionRepositoryImpl(database: FireSafetyDatabase) : SessionRepository {
     override suspend fun getSession(): UserSession? {
         val entity = queries.getSession().executeAsOneOrNull()
         return entity?.let {
-            UserSession(it.email, Role.valueOf(it.role), it.token)
+            UserSession(it.email, it.firstName, it.lastName, Role.valueOf(it.role), it.token)
         }
     }
 
-    override suspend fun saveSession(email: String, role: Role, token: String) {
-        queries.saveSession(email, role.name, token)
+    override suspend fun saveSession(email: String, firstName: String?, lastName: String?, role: Role, token: String) {
+        queries.saveSession(email, firstName, lastName, role.name, token)
     }
 
     override suspend fun clearSession() {

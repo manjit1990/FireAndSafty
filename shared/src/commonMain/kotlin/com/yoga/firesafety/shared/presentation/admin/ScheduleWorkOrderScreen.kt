@@ -36,7 +36,10 @@ fun ScheduleWorkOrderScreen(
 ) {
     val authState by mainViewModel.authState.collectAsState()
     val adminName = when(val state = authState) {
-        is AuthState.Authenticated -> "${state.session.email} (Admin)"
+        is AuthState.Authenticated -> {
+            val name = "${state.session.firstName ?: ""} ${state.session.lastName ?: ""}".trim()
+            if (name.isNotEmpty()) name else state.session.email
+        }
         else -> "Admin"
     }
 

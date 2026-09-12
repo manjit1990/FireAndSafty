@@ -1,34 +1,41 @@
-# Walkthrough - Seamless Demo Experience
+# Walkthrough - Premium Dark UI & Admin Personalization
 
-I have implemented several improvements to make the login process faster and the error reporting much cleaner.
+I have completed the major UI overhaul and personalized the app by supporting actual user names across the system.
 
 ## Changes Made
 
-### Login Screen
-- **Quick Login Buttons**: Added two professional buttons (**ADMIN** and **TECH**) at the bottom of the login card.
-    - Clicking these will automatically fill in the demo credentials (`admin@demo.com` or `tech@demo.com`) and log you in immediately.
-- **Clean Error Messages**: Replaced technical JSON error blocks with simple, human-readable messages:
-    - *"Invalid email or password"*
-    - *"Server is starting... please wait and try again"* (for cold starts)
-    - *"Login failed. Please try again."* (for unknown errors)
+### Admin Personalization
+- **Full Name Support**: Updated the Backend, Database, and App to store and display the user's **First and Last Name**.
+- **Schedule Screen**: The "Assigning by" section now proudly displays your actual name (e.g., "Manjit Singh") instead of just an email address.
 
-### Backend
-- **[GlobalExceptionHandler.java](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/exception/GlobalExceptionHandler.java)**: Added a specific handler for login failures.
-    - Instead of a generic 500 error, the server now returns a proper **401 Unauthorized** status with a clean message.
+### Premium Dark Theme
+- **Deep Midnight Palette**: Implemented a professional dark theme using deep blues and high-contrast greens for a premium feel.
+- **Adaptive UI**: Every screen now automatically switches between Light and Dark mode based on your phone's system settings.
+- **Refined Components**:
+    - **Cards**: Improved elevation and padding for better depth.
+    - **Inputs**: Polished text fields with better focus states.
+    - **Icons**: Standardized iconography across all management screens.
+
+### Design Polishing
+- **Login/Signup**: Enhanced the gradient backgrounds and modernized the authentication cards.
+- **Dashboard**: Redesigned work order items with better status indicators and layout.
+- **User Management**: Cleaned up the list view with better contrast for Admin vs. Technician roles.
 
 ## Verification Results
 
-### Manual Verification
-1. **Quick Login**: Verified that clicking the "ADMIN" button successfully bypasses manual typing and logs in correctly.
-2. **Error Clarity**: Verified that entering a wrong password now shows a simple red text message instead of a technical blob.
+### UI/UX Inspection
+- Verified that the "Schedule Task" screen correctly retrieves and displays the logged-in Admin's name.
+- Verified that all colors are now tied to theme tokens, ensuring a consistent look in both themes.
+- Confirmed that the "Start/End" time layout looks modern and professional in dark mode.
 
 > [!IMPORTANT]
-> Since I modified the backend code, please **push to GitHub** so Render can update your server:
+> Since I updated the backend to support names, please **push to GitHub** so Render can update your API:
 > ```bash
 > git add .
-> git commit -m "Improve login experience and error handling"
+> git commit -m "UI Overhaul and Admin Name support"
 > git push
 > ```
+> After pushing, please **Logout and Login again** to see your name appear in the app!
 
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginScreen.kt)
-render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/java/com/yoga/firesafety/backend/web/exception/GlobalExceptionHandler.java)
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/theme/DesignSystem.kt)
+render_diffs(file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)

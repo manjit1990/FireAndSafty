@@ -91,7 +91,7 @@ fun SignupScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(
@@ -105,7 +105,11 @@ fun SignupScreen(
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
@@ -116,7 +120,11 @@ fun SignupScreen(
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
@@ -127,7 +135,11 @@ fun SignupScreen(
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
@@ -147,7 +159,11 @@ fun SignupScreen(
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -158,15 +174,16 @@ fun SignupScreen(
                         leadingIcon = {
                             Box {
                                 TextButton(onClick = { showCountryPicker = true }) {
-                                    Text("${selectedCountry.flag} ${selectedCountry.code}")
+                                    Text("${selectedCountry.flag} ${selectedCountry.code}", color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 DropdownMenu(
                                     expanded = showCountryPicker,
-                                    onDismissRequest = { showCountryPicker = false }
+                                    onDismissRequest = { showCountryPicker = false },
+                                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                                 ) {
                                     countries.forEach { country ->
                                         DropdownMenuItem(
-                                            text = { Text("${country.flag} ${country.name} (${country.code})") },
+                                            text = { Text("${country.flag} ${country.name} (${country.code})", color = MaterialTheme.colorScheme.onSurface) },
                                             onClick = {
                                                 selectedCountry = country
                                                 showCountryPicker = false
@@ -178,7 +195,11 @@ fun SignupScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
                     )
                     
                     Spacer(modifier = Modifier.height(32.dp))

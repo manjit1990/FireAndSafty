@@ -8,18 +8,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 object AppColors {
-    val Primary = Color(0xFF0D47A1) // Deep Navy
-    val PrimaryVariant = Color(0xFF002171)
-    val Secondary = Color(0xFF2E7D32) // Emerald Green
-    val SecondaryVariant = Color(0xFF005005)
+    // Light Palette
+    val Primary = Color(0xFF0D47A1)
+    val Secondary = Color(0xFF2E7D32)
     val Background = Color(0xFFF5F7FA)
     val Surface = Color(0xFFFFFFFF)
-    val Error = Color(0xFFB00020)
     val OnPrimary = Color(0xFFFFFFFF)
-    val OnSecondary = Color(0xFFFFFFFF)
     val OnBackground = Color(0xFF1A1C1E)
     val OnSurface = Color(0xFF1A1C1E)
-    val OnSurfaceVariant = Color(0xFF44474E)
+
+    // Dark Palette (Deep Midnight)
+    val DarkPrimary = Color(0xFFD0E4FF)
+    val DarkSecondary = Color(0xFF81C784)
+    val DarkBackground = Color(0xFF0F111A)
+    val DarkSurface = Color(0xFF1B1E2B)
+    val DarkOnPrimary = Color(0xFF003258)
+    val DarkOnBackground = Color(0xFFE2E2E6)
+    val DarkOnSurface = Color(0xFFE2E2E6)
+    
+    val Error = Color(0xFFB00020)
     val Outline = Color(0xFF74777F)
 }
 

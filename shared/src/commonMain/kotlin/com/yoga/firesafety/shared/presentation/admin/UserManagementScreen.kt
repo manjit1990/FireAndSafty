@@ -46,7 +46,10 @@ fun UserManagementScreen(
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -101,7 +104,7 @@ fun UserItem(user: User, onPromoteClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -117,7 +120,7 @@ fun UserItem(user: User, onPromoteClick: () -> Unit) {
                     Icon(
                         imageVector = if (user.role == Role.ADMIN) Icons.Default.Shield else Icons.Default.Person,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -128,17 +131,18 @@ fun UserItem(user: User, onPromoteClick: () -> Unit) {
                 Text(
                     "${user.firstName} ${user.lastName}",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     user.email,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     "Role: ${user.role}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (user.role == Role.ADMIN) Color(0xFF2E7D32) else Color.Gray,
+                    color = if (user.role == Role.ADMIN) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
             }

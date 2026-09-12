@@ -41,7 +41,7 @@ class SignupViewModel(
                 val response = api.register(request)
                 
                 // Save session for auto-login
-                sessionRepository.saveSession(email, response.role, response.token)
+                sessionRepository.saveSession(email, response.firstName, response.lastName, response.role, response.token)
                 
                 _uiState.value = SignupState.Success(response.role)
             } catch (e: Exception) {

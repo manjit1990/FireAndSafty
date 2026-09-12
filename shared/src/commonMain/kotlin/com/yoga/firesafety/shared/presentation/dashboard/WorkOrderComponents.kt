@@ -24,7 +24,7 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -32,7 +32,7 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
             val barColor = when(order.priority.uppercase()) {
                 "HIGH" -> Color(0xFFE53935)
                 "MEDIUM" -> Color(0xFF4CAF50)
-                else -> Color(0xFF2196F3)
+                else -> MaterialTheme.colorScheme.primary
             }
             Box(modifier = Modifier.width(6.dp).fillMaxHeight().background(barColor))
             
@@ -46,14 +46,15 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             order.status.name,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -63,7 +64,8 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                 Text(
                     order.buildingName, 
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -73,7 +75,7 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                         imageVector = Icons.Default.AccessTime, 
                         contentDescription = null, 
                         modifier = Modifier.size(14.dp), 
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -81,7 +83,7 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                             "${order.scheduledAt} - ${order.scheduledEnd}"
                         else "Unscheduled", 
                         style = MaterialTheme.typography.bodySmall, 
-                        color = if (order.scheduledAt != null) Color.Gray else MaterialTheme.colorScheme.error
+                        color = if (order.scheduledAt != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                     )
                 }
                 
@@ -92,13 +94,13 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                         imageVector = Icons.Default.LocationOn, 
                         contentDescription = null, 
                         modifier = Modifier.size(14.dp), 
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         order.address, 
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
                 }

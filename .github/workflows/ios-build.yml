@@ -40,7 +40,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build KMP iOS Shared Framework
-      run: ./gradlew :shared:assembleSharedReleaseFrameworkIosArm64 --stacktrace
+      run: ./gradlew :shared:linkReleaseFrameworkIosArm64 --stacktrace
 
     - name: List Output Frameworks
-      run: ls -la shared/build/cocoapods/framework/ || ls -la shared/build/bin/iosArm64/
+      run: ls -la shared/build/bin/iosArm64/releaseFramework/ || ls -la shared/build/bin/iosArm64/

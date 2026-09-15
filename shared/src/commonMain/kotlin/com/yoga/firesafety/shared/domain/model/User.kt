@@ -9,6 +9,8 @@ data class User(
     val firstName: String,
     val lastName: String,
     val role: Role,
-    val phoneNumber: String? = null,
-    val isActive: Boolean = true
+    val phoneNumber: String,
+    val isAdmin: Boolean = false,
+    val isActive: Boolean = true,
+    val profileImageUrl: String? = null
 )

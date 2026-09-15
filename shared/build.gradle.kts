@@ -29,6 +29,7 @@ kotlin {
         }
     }
 
+/*
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser {
@@ -44,6 +45,7 @@ kotlin {
         }
         binaries.executable()
     }
+*/
     
     android {
        namespace = "com.learningapp.firesafetyservicemanagement.shared"
@@ -51,7 +53,7 @@ kotlin {
        minSdk = libs.versions.android.minSdk.get().toInt()
     
        compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
+           jvmTarget = JvmTarget.JVM_17
        }
        androidResources {
            enable = true
@@ -77,12 +79,14 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
         }
+/*
         val wasmJsMain by getting {
             dependencies {
                 implementation(libs.sqldelight.driver.wasm)
                 implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.3.2"))
             }
         }
+*/
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -109,6 +113,8 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.firebase.auth)
+            implementation(libs.firebase.firestore)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -10,14 +10,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderScheduleItem
 import org.koin.compose.viewmodel.koinViewModel
@@ -32,6 +31,48 @@ fun AdminDashboardScreen(
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
+    val unassignedOrders = workOrders.filter { it.status == WorkOrderStatus.NEW }
+    val assignedOrders = workOrders.filter { 
+        it.status == WorkOrderStatus.ASSIGNED || 
+        it.status == WorkOrderStatus.STARTED || 
+        it.status == WorkOrderStatus.IN_PROGRESS ||
+        it.status == WorkOrderStatus.ACCEPTED ||
+        it.status == WorkOrderStatus.EN_ROUTE ||
+        it.status == WorkOrderStatus.ON_SITE
+    }
+    val completedOrders = workOrders.filter { 
+        it.status == WorkOrderStatus.COMPLETED || it.status == WorkOrderStatus.CANCELLED 
+    }
+
+    val filteredOrders = when (selectedTabIndex) {
+        0 -> unassignedOrders
+        1 -> assignedOrders
+        else -> completedOrders
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Logout", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to logout of the Admin Portal?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    onLogout()
+                }) {
+                    Text("Confirm", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -51,7 +92,7 @@ fun AdminDashboardScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onLogout) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
                     }
                 },
@@ -105,17 +146,94 @@ fun AdminDashboardScreen(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                 color = MaterialTheme.colorScheme.onBackground
             )
-            
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
+
+            // Dynamic Tabs
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                divider = { HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) }
             ) {
-                items(workOrders) { order ->
-                    WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order.id) })
+                AdminTab(0, "Pending", unassignedOrders.size, selectedTabIndex == 0) { selectedTabIndex = 0 }
+                AdminTab(1, "Assigned", assignedOrders.size, selectedTabIndex == 1) { selectedTabIndex = 1 }
+                AdminTab(2, "Archived", completedOrders.size, selectedTabIndex == 2) { selectedTabIndex = 2 }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (filteredOrders.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Inbox, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = when(selectedTabIndex) {
+                                0 -> "No pending work orders"
+                                1 -> "No active assignments"
+                                else -> "No archived tasks"
+                            },
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
+                ) {
+                    items(filteredOrders) { order ->
+                        WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order.id) })
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun AdminTab(
+    index: Int,
+    title: String,
+    count: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Tab(
+        selected = isSelected,
+        onClick = onClick,
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+                )
+                if (count > 0) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Surface(
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = count.toString(),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable

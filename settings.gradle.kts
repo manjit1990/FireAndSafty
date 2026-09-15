@@ -29,5 +29,5 @@ dependencyResolutionManagement {
 
 include(":androidApp")
 include(":shared")
-include(":backend")
-include(":webApp")
+// include(":backend")
+// include(":webApp")

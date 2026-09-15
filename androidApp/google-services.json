@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001418560573",
+    "project_id": "firesafety-1ab17",
+    "storage_bucket": "firesafety-1ab17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001418560573:android:4e651c1a379f6aa798c654",
+        "android_client_info": {
+          "package_name": "com.learningapp.firesafetyservicemanagement"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMfMlZfNT_4-KSSLBh-cF1SYtqvKv5Vow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

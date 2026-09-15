@@ -4,6 +4,7 @@ import com.yoga.firesafety.shared.domain.model.Role
 import kotlinx.coroutines.flow.Flow
 
 data class UserSession(
+    val userId: String,
     val email: String, 
     val firstName: String?, 
     val lastName: String?, 
@@ -13,6 +14,6 @@ data class UserSession(
 
 interface SessionRepository {
     suspend fun getSession(): UserSession?
-    suspend fun saveSession(email: String, firstName: String?, lastName: String?, role: Role, token: String)
+    suspend fun saveSession(userId: String, email: String, firstName: String?, lastName: String?, role: Role, token: String)
     suspend fun clearSession()
 }

@@ -29,6 +29,29 @@ fun UserManagementScreen(
     val users by viewModel.users.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    
+    var userToPromote by remember { mutableStateOf<User?>(null) }
+
+    if (userToPromote != null) {
+        AlertDialog(
+            onDismissRequest = { userToPromote = null },
+            title = { Text("Promote User", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to promote ${userToPromote!!.firstName} ${userToPromote!!.lastName} to ADMIN role?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.promoteToAdmin(userToPromote!!.id)
+                    userToPromote = null
+                }) {
+                    Text("Promote", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { userToPromote = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -88,7 +111,7 @@ fun UserManagementScreen(
                     items(users) { user ->
                         UserItem(
                             user = user,
-                            onPromoteClick = { viewModel.promoteToAdmin(user.id) }
+                            onPromoteClick = { userToPromote = user }
                         )
                     }
                 }
@@ -144,13 +167,24 @@ fun UserItem(user: User, onPromoteClick: () -> Unit) {
                     color = if (user.role == Role.ADMIN) MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(6.dp)
                 ) {
-                    Text(
-                        user.role.name,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (user.role == Role.ADMIN) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (user.role == Role.ADMIN) Icons.Default.Shield else Icons.Default.Engineering,
+                            contentDescription = null,
+                            tint = if (user.role == Role.ADMIN) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            user.role.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (user.role == Role.ADMIN) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
             

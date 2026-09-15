@@ -4,19 +4,31 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.yoga.firesafety.shared.presentation.MainApp
+import com.yoga.firesafety.shared.presentation.MainViewModel
+import com.yoga.firesafety.shared.presentation.AuthState
 import com.yoga.firesafety.shared.presentation.theme.FireSafetyTheme
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: MainViewModel by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        enableEdgeToEdge()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        splashScreen.setKeepOnScreenCondition {
+            viewModel.authState.value is AuthState.Loading
+        }
+
+        enableEdgeToEdge()
 
         setContent {
             FireSafetyTheme {
-                MainApp()
+                MainApp(viewModel)
             }
         }
     }

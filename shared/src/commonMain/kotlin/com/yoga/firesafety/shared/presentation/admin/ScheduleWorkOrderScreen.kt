@@ -17,10 +17,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yoga.firesafety.shared.domain.model.Role
 import com.yoga.firesafety.shared.domain.model.User
 import com.yoga.firesafety.shared.presentation.MainViewModel
 import com.yoga.firesafety.shared.presentation.AuthState
+import com.yoga.firesafety.shared.presentation.dashboard.AssignmentState
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
+import com.yoga.firesafety.shared.presentation.dashboard.formatIsoDateTime
+import com.yoga.firesafety.shared.presentation.dashboard.formatWorkOrderDateTimeRange
 import com.yoga.firesafety.shared.presentation.inspection.DropdownField
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,6 +40,7 @@ fun ScheduleWorkOrderScreen(
     userViewModel: UserManagementViewModel = koinViewModel()
 ) {
     val authState by mainViewModel.authState.collectAsState()
+    val adminId = (authState as? AuthState.Authenticated)?.session?.userId
     val adminName = when(val state = authState) {
         is AuthState.Authenticated -> {
             val name = "${state.session.firstName ?: ""} ${state.session.lastName ?: ""}".trim()
@@ -48,7 +53,8 @@ fun ScheduleWorkOrderScreen(
     val order = workOrders.find { it.id == orderId }
     
     val allUsers by userViewModel.users.collectAsState()
-    val technicians = allUsers.filter { it.role.name == "TECHNICIAN" }
+    val technicians = allUsers.filter { it.role == Role.TECHNICIAN }
+    val assignmentState by workOrderViewModel.assignmentState.collectAsState()
     
     var selectedTech by remember { mutableStateOf<User?>(null) }
     var selectedDate by remember { mutableStateOf("") }
@@ -62,6 +68,24 @@ fun ScheduleWorkOrderScreen(
     val datePickerState = rememberDatePickerState()
     val startTimePickerState = rememberTimePickerState()
     val endTimePickerState = rememberTimePickerState()
+    val isAssigning = assignmentState is AssignmentState.Loading
+    val assignmentError = (assignmentState as? AssignmentState.Error)?.message
+
+    LaunchedEffect(order?.id, order?.technicianId, order?.scheduledAt, order?.scheduledEnd, technicians) {
+        if (order == null) return@LaunchedEffect
+
+        selectedTech = technicians.firstOrNull { it.id == order.technicianId } ?: selectedTech
+        selectedDate = order.scheduledAt?.substringBefore("T").orEmpty()
+        selectedStartTime = order.scheduledAt?.substringAfter("T", "")?.take(5).orEmpty()
+        selectedEndTime = order.scheduledEnd?.substringAfter("T", "")?.take(5).orEmpty()
+    }
+
+    LaunchedEffect(assignmentState) {
+        if (assignmentState is AssignmentState.Success) {
+            workOrderViewModel.clearAssignmentState()
+            onAssigned()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -160,6 +184,11 @@ fun ScheduleWorkOrderScreen(
                 Column(modifier = Modifier.padding(horizontal = 28.dp)) {
                     Text("Scheduling Details", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    if (order.technicianName != null || order.assignedAt != null) {
+                        CurrentAssignmentCard(order = order)
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
                     
                     // Technician Selection
                     DropdownField(
@@ -205,18 +234,45 @@ fun ScheduleWorkOrderScreen(
                     
                     Button(
                         onClick = {
-                            val isoStart = "${selectedDate}T${selectedStartTime}:00"
-                            val isoEnd = "${selectedDate}T${selectedEndTime}:00"
-                            workOrderViewModel.assignOrder(orderId, selectedTech?.id ?: "", isoStart, isoEnd)
-                            onAssigned()
+                            selectedTech?.let { technician ->
+                                val technicianName = "${technician.firstName} ${technician.lastName}".trim()
+                                val isoStart = "${selectedDate}T${selectedStartTime}:00"
+                                val isoEnd = "${selectedDate}T${selectedEndTime}:00"
+                                workOrderViewModel.assignOrder(
+                                    orderId = orderId,
+                                    technicianId = technician.id,
+                                    technicianName = technicianName.ifEmpty { technician.email },
+                                    scheduledAt = isoStart,
+                                    scheduledEnd = isoEnd,
+                                    assignedAt = Clock.System.now().toString(),
+                                    assignedById = adminId,
+                                    assignedByName = adminName
+                                )
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(20.dp),
-                        enabled = selectedTech != null && selectedDate.isNotEmpty() && selectedStartTime.isNotEmpty() && selectedEndTime.isNotEmpty(),
+                        enabled = !isAssigning && selectedTech != null && selectedDate.isNotEmpty() && selectedStartTime.isNotEmpty() && selectedEndTime.isNotEmpty(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                     ) {
-                        Text("DISPATCH TECHNICIAN", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.25.sp)
+                        if (isAssigning) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
+                        Text(if (isAssigning) "DISPATCHING" else "DISPATCH TECHNICIAN", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.25.sp)
+                    }
+                    if (assignmentError != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Assignment failed: $assignmentError",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                     Spacer(modifier = Modifier.height(40.dp))
                 }
@@ -273,6 +329,56 @@ fun ScheduleWorkOrderScreen(
         ) {
             TimePicker(state = endTimePickerState)
         }
+    }
+}
+
+@Composable
+private fun CurrentAssignmentCard(order: com.yoga.firesafety.shared.domain.model.WorkOrder) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                "Current Assignment",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            AssignmentRow(Icons.Default.Engineering, "Assigned to", order.technicianName ?: "Not assigned")
+            AssignmentRow(Icons.Default.Event, "Visit", formatWorkOrderDateTimeRange(order.scheduledAt, order.scheduledEnd))
+            AssignmentRow(Icons.Default.Person, "Assigned by", order.assignedByName ?: "Admin")
+            AssignmentRow(Icons.Default.Schedule, "Assigned on", formatIsoDateTime(order.assignedAt))
+        }
+    }
+}
+
+@Composable
+private fun AssignmentRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            "$label: ",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

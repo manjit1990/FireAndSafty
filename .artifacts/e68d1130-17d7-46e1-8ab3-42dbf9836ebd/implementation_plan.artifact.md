@@ -1,26 +1,49 @@
-# Implementation Plan - Backend Stability & Performance
+# Implementation Plan - Firebase Migration (Demo Optimization)
 
-This plan addresses the "Exited with status 1" error by optimizing the backend for Render's 512MB RAM environment and ensuring robust database initialization.
+This plan outlines the complete migration from the custom Spring Boot backend to **Google Firebase**. This will provide a lightning-fast demo experience with real-time updates and zero server sleep time.
+
+## User Action Required (CRITICAL)
+
+To proceed, you must set up the Firebase project and provide the configuration. Please follow these steps:
+
+1.  Go to the [Firebase Console](https://console.firebase.google.com/).
+2.  Create a new project named **FireSafety**.
+3.  Add an **Android App** to the project:
+    *   **Package Name**: `com.learningapp.firesafetyservicemanagement`
+4.  Download the `google-services.json` file.
+5.  **Enable Services**:
+    *   **Authentication**: Enable "Email/Password" sign-in provider.
+    *   **Firestore Database**: Create a database in "Test Mode" (so we can read/write easily for the demo).
+6.  **UPLOAD**: Please upload the `google-services.json` content here or tell me once you have placed it in the `androidApp/` folder.
+
+---
 
 ## Proposed Changes
 
-### [backend] component
+### 1. Dependency Updates
+#### [MODIFY] [shared/build.gradle.kts](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/build.gradle.kts) & [libs.versions.toml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle/libs.versions.toml)
+- Add Firebase KMP SDKs:
+    *   `dev.gitlive:firebase-auth`
+    *   `dev.gitlive:firebase-firestore`
 
-#### [MODIFY] [application.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/application.yml)
-- Limit the database connection pool (HikariCP) to reduce memory overhead.
-- Ensure the app binds correctly to Render's dynamic port.
+### 2. Authentication Migration
+#### [MODIFY] [LoginViewModel.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/LoginViewModel.kt) & [SignupViewModel.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/auth/SignupViewModel.kt)
+- Remove `FireSafetyApi` calls.
+- Implement Firebase Auth for sign-in and registration.
+- Store additional user metadata (Full Name, Role) in a Firestore `users` collection.
 
-#### [MODIFY] [Dockerfile](file:///C:/Users/yoga/Desktop/New/FireAndSafty/Dockerfile)
-- Add Java memory limit flags (`-Xmx384m`, `-Xms256m`) to the startup command. This prevents the JVM from exceeding Render's 512MB limit.
-- Optimize the build process by cleaning before building.
+### 3. Data Layer Migration
+#### [MODIFY] [WorkOrderRepositoryImpl.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/data/repository/WorkOrderRepositoryImpl.kt)
+- Replace Ktor/SQLDelight synchronization logic with direct Firestore listeners.
+- This will enable **real-time updates**: as soon as you assign a task in the Admin Portal, it will appear on the Technician's phone without refreshing.
 
-#### [MODIFY] [V7__force_demo_users.sql](file:///C:/Users/yoga/Desktop/New/FireAndSafty/backend/src/main/resources/db/migration/V7__force_demo_users.sql)
-- Simplify the migration to ensure it's idempotent (safe to run multiple times).
+### 4. Admin Portal Logic
+#### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
+- Update to write assignments directly to Firestore.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Apply Changes**: I will update the files.
-2. **Push to GitHub**: You must push to GitHub.
-3. **Monitor Render**: Watch the logs. With memory limits and connection pool limits, the app should start reliably within 1-2 minutes.
-4. **Login**: Verify the "ADMIN" login works.
+1.  **Authentication**: Verify you can sign up and log in using Firebase.
+2.  **Real-time Sync**: Open the app on two devices. Create an order on one and verify it appears instantly on the other.
+3.  **Stability**: Confirm there are no more "Socket timeout" or "Port binding" errors.

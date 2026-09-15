@@ -9,5 +9,24 @@ interface WorkOrderRepository {
     suspend fun refreshWorkOrders()
     suspend fun updateStatus(id: String, status: WorkOrderStatus)
     suspend fun createWorkOrder(order: WorkOrder)
-    suspend fun assignWorkOrder(id: String, technicianId: String, scheduledAt: String?, scheduledEnd: String?)
+    suspend fun assignWorkOrder(
+        id: String,
+        technicianId: String,
+        technicianName: String,
+        scheduledAt: String?,
+        scheduledEnd: String?,
+        assignedAt: String,
+        assignedById: String?,
+        assignedByName: String?
+    )
+    fun getWorkOrdersForTechnician(technicianId: String): Flow<List<WorkOrder>>
+    suspend fun startVisit(orderId: String)
+    suspend fun completeVisit(
+        orderId: String,
+        notes: String?,
+        photos: List<String>,
+        videos: List<String>,
+        questions: Map<String, String>,
+        completedAt: String
+    )
 }

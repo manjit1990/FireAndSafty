@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -54,9 +55,9 @@ fun InspectionFormScreen(
                         onClick = onSaveClick,
                         modifier = Modifier.weight(1f).height(60.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                     ) {
-                        Text("SAVE REPORT", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                        Text("Save", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                     }
                 }
             }
@@ -115,115 +116,79 @@ fun InspectionFormScreen(
 
 @Composable
 fun DeficiencyForm() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text("General Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            var techName by remember { mutableStateOf("Vikram Singh") }
-            FormField("Technician Name", techName) { techName = it }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            Text("Deficiency Details", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(20.dp))
-
-            var fireDef by remember { mutableStateOf("") }
-            var sprinklerDef by remember { mutableStateOf("") }
-            var extDef by remember { mutableStateOf("") }
-            var lightDef by remember { mutableStateOf("") }
-
-            FormField("Fire Alarm Deficiency", fireDef) { fireDef = it }
-            FormField("Sprinkler Deficiency", sprinklerDef) { sprinklerDef = it }
-            FormField("Fire Extinguishers & Hoses Deficiency", extDef) { extDef = it }
-            FormField("Emergency Light Deficiency", lightDef) { lightDef = it }
+    Column {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Fire Alarm Deficiency", style = MaterialTheme.typography.titleMedium, color = Color(0xFF1E3A8A), fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                var techName by remember { mutableStateOf("Vikram Singh") }
+                FormField("Technician Name", techName) { techName = it }
+                
+                var fireDef by remember { mutableStateOf("") }
+                FormField("Fire Alarm Deficiency", fireDef) { fireDef = it }
+                
+                var sprinklerDef by remember { mutableStateOf("") }
+                FormField("Sprinkler Deficiency", sprinklerDef) { sprinklerDef = it }
+                
+                var extDef by remember { mutableStateOf("") }
+                FormField("Fire Extinguishers & Hoses Deficiency", extDef) { extDef = it }
+                
+                var lightDef by remember { mutableStateOf("") }
+                FormField("Emergency Light Deficiency", lightDef) { lightDef = it }
+            }
         }
     }
 }
 
 @Composable
 fun MonthlyInspectionForm() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text("Fire Alarm System", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            var selectedMonth by remember { mutableStateOf("") }
-            DropdownField(
-                label = "Inspection Month",
-                selectedValue = selectedMonth,
-                options = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
-                onOptionSelected = { selectedMonth = it }
-            )
-            
-            var acPower by remember { mutableStateOf("") }
-            DropdownField(
-                label = "AC Power Light On Arrival?",
-                selectedValue = acPower,
-                options = listOf("Yes", "No"),
-                onOptionSelected = { acPower = it }
-            )
-            
-            var systemNormal by remember { mutableStateOf("") }
-            DropdownField(
-                label = "System Normal On Arrival?",
-                selectedValue = systemNormal,
-                options = listOf("Yes", "No"),
-                onOptionSelected = { systemNormal = it }
-            )
-            
-            var condition by remember { mutableStateOf("") }
-            var deviceLoc by remember { mutableStateOf("") }
-            
-            FormField("Condition Explanation", condition) { condition = it }
-            FormField("Initiating Device Location", deviceLoc) { deviceLoc = it }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            Text("Equipment Status", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            Text("Fire hose stations checked?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            var hoseStation by remember { mutableStateOf("") }
-            DropdownField(
-                label = "Select Status",
-                selectedValue = hoseStation,
-                options = listOf("Yes", "No"),
-                onOptionSelected = { hoseStation = it }
-            )
-            var hoseReason by remember { mutableStateOf("") }
-            FormField("Reason (if no)", hoseReason) { hoseReason = it }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text("Emergency lighting tested?", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            var emergencyLight by remember { mutableStateOf("") }
-            DropdownField(
-                label = "Select Status",
-                selectedValue = emergencyLight,
-                options = listOf("Yes", "No"),
-                onOptionSelected = { emergencyLight = it }
-            )
-            var lightReason by remember { mutableStateOf("") }
-            FormField("Reason (if no)", lightReason) { lightReason = it }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            Text("Compliance Verification", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            var inspectorName by remember { mutableStateOf("") }
-            var comments by remember { mutableStateOf("") }
-            
-            FormField("Inspector Full Name", inspectorName) { inspectorName = it }
-            FormField("Final Observation Comments", comments) { comments = it }
+    Column {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Monthly Fire Alarm Test and Inspection", style = MaterialTheme.typography.titleMedium, color = Color(0xFF1E3A8A), fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                var selectedMonth by remember { mutableStateOf("") }
+                DropdownField(
+                    label = "Month of Inspection:",
+                    selectedValue = selectedMonth,
+                    options = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+                    onOptionSelected = { selectedMonth = it }
+                )
+                
+                var acPower by remember { mutableStateOf("") }
+                DropdownField(
+                    label = "AC Power Light On Upon Arrival?",
+                    selectedValue = acPower,
+                    options = listOf("Yes", "No"),
+                    onOptionSelected = { acPower = it }
+                )
+                
+                var systemNormal by remember { mutableStateOf("") }
+                DropdownField(
+                    label = "System Normal Upon Arrival?",
+                    selectedValue = systemNormal,
+                    options = listOf("Yes", "No"),
+                    onOptionSelected = { systemNormal = it }
+                )
+                
+                var condition by remember { mutableStateOf("") }
+                FormField("If No, Explain Condition of system", condition) { condition = it }
+                
+                var deviceLoc by remember { mutableStateOf("") }
+                FormField("Location of Alarm Initiating Device Tested:", deviceLoc) { deviceLoc = it }
+            }
         }
     }
 }

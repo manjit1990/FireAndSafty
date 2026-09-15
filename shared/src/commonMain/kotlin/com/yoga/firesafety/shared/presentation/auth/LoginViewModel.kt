@@ -2,16 +2,15 @@ package com.yoga.firesafety.shared.presentation.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.yoga.firesafety.shared.data.remote.FireSafetyApi
-import com.yoga.firesafety.shared.data.remote.dto.AuthenticationRequest
 import com.yoga.firesafety.shared.domain.model.Role
 import com.yoga.firesafety.shared.domain.repository.SessionRepository
+import com.yoga.firesafety.shared.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val api: FireSafetyApi,
+    private val userRepository: UserRepository,
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LoginState>(LoginState.Initial)
@@ -21,13 +20,13 @@ class LoginViewModel(
         viewModelScope.launch {
             _uiState.value = LoginState.Loading
             try {
-                val response = api.authenticate(AuthenticationRequest(email, password))
+                val user = userRepository.login(email, password)
                 
                 // For demo: Force ADMIN role if email contains "admin"
-                val effectiveRole = if (email.lowercase().contains("admin")) Role.ADMIN else response.role
+                val effectiveRole = if (email.lowercase().contains("admin")) Role.ADMIN else user.role
                 
-                // Save session for auto-login
-                sessionRepository.saveSession(email, response.firstName, response.lastName, effectiveRole, response.token)
+                // Save session for auto-login (Token is handled by Firebase Auth, but we cache role/name)
+                sessionRepository.saveSession(user.id, email, user.firstName, user.lastName, effectiveRole, "firebase_token")
                 
                 _uiState.value = LoginState.Success(effectiveRole)
             } catch (e: Exception) {

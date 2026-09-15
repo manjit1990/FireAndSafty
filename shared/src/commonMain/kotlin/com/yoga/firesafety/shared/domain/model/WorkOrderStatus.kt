@@ -9,6 +9,7 @@ enum class WorkOrderStatus {
     ACCEPTED,
     EN_ROUTE,
     ON_SITE,
+    STARTED,
     IN_PROGRESS,
     REPAIR_REQUIRED,
     COMPLETED,

@@ -28,10 +28,16 @@ fun CreateWorkOrderScreen(
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     var buildingName by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
+    var streetAddress by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var province by remember { mutableStateOf("ON") }
+    var postalCode by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("INSPECTION") }
     var priority by remember { mutableStateOf("MEDIUM") }
     var notes by remember { mutableStateOf("") }
+
+    val provinces = listOf("AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT")
+
 
     Scaffold(
         topBar = {
@@ -56,10 +62,11 @@ fun CreateWorkOrderScreen(
             ) {
                 Button(
                     onClick = {
+                        val fullAddress = "$streetAddress, $city, $province $postalCode".trim()
                         val newOrder = WorkOrder(
                             id = Random.nextInt(1000, 9999).toString(),
                             buildingName = buildingName,
-                            address = address,
+                            address = fullAddress,
                             type = type,
                             status = WorkOrderStatus.NEW,
                             priority = priority,
@@ -73,7 +80,7 @@ fun CreateWorkOrderScreen(
                     modifier = Modifier.fillMaxWidth().padding(20.dp).height(60.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    enabled = buildingName.isNotBlank() && address.isNotBlank(),
+                    enabled = buildingName.isNotBlank() && streetAddress.isNotBlank() && city.isNotBlank() && postalCode.isNotBlank(),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
                     Text("CREATE WORK ORDER", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
@@ -99,7 +106,23 @@ fun CreateWorkOrderScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     FormField("Building Name", buildingName) { buildingName = it }
-                    FormField("Full Address", address) { address = it }
+                    FormField("Street Address", streetAddress) { streetAddress = it }
+                    
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(modifier = Modifier.weight(1.5f)) {
+                            FormField("City", city) { city = it }
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            DropdownField(
+                                label = "Province",
+                                selectedValue = province,
+                                options = provinces,
+                                onOptionSelected = { province = it }
+                            )
+                        }
+                    }
+                    
+                    FormField("Postal Code", postalCode) { postalCode = it }
                     
                     Spacer(modifier = Modifier.height(32.dp))
                     Text("Service Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)

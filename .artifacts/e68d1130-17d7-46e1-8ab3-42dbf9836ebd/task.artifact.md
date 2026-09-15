@@ -1,6 +1,12 @@
-# Tasks - Backend Stability & Performance
+# Tasks - Firebase Migration
 
-- [x] Update `application.yml` with connection pool limits
-- [x] Update `Dockerfile` with JVM memory flags
-- [x] Verify `V7` SQL migration
-- [ ] Verify deployment on Render
+- [x] Update dependencies in `libs.versions.toml`
+- [x] Apply Firebase plugins in root `build.gradle.kts`
+- [x] Update `shared/build.gradle.kts` with Firebase KMP libraries
+- [x] Apply `google-services` plugin in `androidApp/build.gradle.kts`
+- [x] Create Firebase-based Data Models
+- [x] Implement `FirebaseSessionRepository` (via hybrid cache)
+- [x] Implement `FirebaseWorkOrderRepository`
+- [x] Refactor `LoginViewModel` & `SignupViewModel` for Firebase Auth
+- [x] Finalize integration with `google-services.json`
+- [x] Verify Firebase connectivity

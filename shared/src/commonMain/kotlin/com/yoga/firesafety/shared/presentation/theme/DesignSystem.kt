@@ -20,20 +20,35 @@ object AppColors {
     val OnSurfaceVariant = Color(0xFF64748B)
     val Outline = Color(0xFFCBD5E1)
 
-    // Ultimate Dark Palette (Deep Midnight / AMOLED)
-    val DarkPrimary = Color(0xFF60A5FA) // Vibrant Blue
-    val DarkSecondary = Color(0xFF34D399) // Vibrant Emerald
-    val DarkBackground = Color(0xFF020617) // Deepest Navy
-    val DarkSurface = Color(0xFF0F172A) // Slate Navy
-    val DarkOnPrimary = Color(0xFF020617)
-    val DarkOnSecondary = Color(0xFF020617)
+    // Next-Gen Dark Palette (Deep Space)
+    val DarkPrimary = Color(0xFF00D2FF) // Electric Cyan
+    val DarkSecondary = Color(0xFF34D399) // Emerald
+    val DarkBackground = Color(0xFF0A0F1D) // Deep Space Navy
+    val DarkSurface = Color(0xFF161B2C) // Muted Surface
+    val DarkOnPrimary = Color(0xFF0A0F1D)
+    val DarkOnSecondary = Color(0xFF0A0F1D)
     val DarkOnBackground = Color(0xFFF8FAFC)
     val DarkOnSurface = Color(0xFFF8FAFC)
     val DarkOnSurfaceVariant = Color(0xFF94A3B8)
-    val DarkOutline = Color(0xFF334155)
+    val DarkOutline = Color(0xFF23293F)
     
-    val Error = Color(0xFFEF4444)
-    val Success = Color(0xFF10B981)
+    val Error = Color(0xFFFF4B66)
+    val Success = Color(0xFF00D2FF)
+}
+
+object AppGradients {
+    val DeepSpace = androidx.compose.ui.graphics.Brush.verticalGradient(
+        colors = listOf(Color(0xFF0A0F1D), Color(0xFF020409))
+    )
+    val Midnight = androidx.compose.ui.graphics.Brush.verticalGradient(
+        colors = listOf(Color(0xFF0A0F1D), Color(0xFF020409))
+    )
+    val CyanGlow = androidx.compose.ui.graphics.Brush.linearGradient(
+        colors = listOf(Color(0xFF00D2FF), Color(0xFF3B82F6))
+    )
+    val GlassEffect = androidx.compose.ui.graphics.Brush.verticalGradient(
+        colors = listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.02f))
+    )
 }
 
 val AppTypography = Typography(

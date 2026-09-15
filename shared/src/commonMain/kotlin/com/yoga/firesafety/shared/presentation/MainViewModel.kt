@@ -2,15 +2,17 @@ package com.yoga.firesafety.shared.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.yoga.firesafety.shared.data.remote.FireSafetyApi
 import com.yoga.firesafety.shared.domain.repository.SessionRepository
 import com.yoga.firesafety.shared.domain.repository.UserSession
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class MainViewModel(
-    private val api: FireSafetyApi,
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -22,11 +24,25 @@ class MainViewModel(
 
     private fun checkSession() {
         viewModelScope.launch {
-            val session = sessionRepository.getSession()
-            if (session != null) {
-                api.setAuthToken(session.token)
-                _authState.value = AuthState.Authenticated(session)
-            } else {
+            try {
+                _authState.value = withTimeoutOrNull(SESSION_CHECK_TIMEOUT_MS) {
+                    val session = sessionRepository.getSession()
+                    val firebaseUser = Firebase.auth.currentUser
+
+                    if (session != null && firebaseUser != null) {
+                        AuthState.Authenticated(session)
+                    } else {
+                        AuthState.Unauthenticated
+                    }
+                } ?: AuthState.Unauthenticated
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                try {
+                    sessionRepository.clearSession()
+                } catch (ignored: Exception) {
+                    // Best effort cleanup only; opening the app should still continue.
+                }
                 _authState.value = AuthState.Unauthenticated
             }
         }
@@ -34,10 +50,14 @@ class MainViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            api.setAuthToken(null)
+            Firebase.auth.signOut()
             sessionRepository.clearSession()
             _authState.value = AuthState.Unauthenticated
         }
+    }
+
+    private companion object {
+        const val SESSION_CHECK_TIMEOUT_MS = 2_000L
     }
 }
 

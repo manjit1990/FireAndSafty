@@ -1,0 +1,6 @@
+- `[ ]` Implement Deep Space Palette & Mesh Gradients (`DesignSystem.kt`)
+- `[ ]` Overhaul `WorkOrderComponents.kt` (Minimalist text-focused layout)
+- `[ ]` Redesign `WorkOrderListScreen.kt` (Futuristic Header & Focus-Ring Calendar)
+- `[ ]` Update `WorkOrderDetailsScreen.kt` (Command Center UI)
+- `[ ]` Transform `ProfileScreen.kt` to Next-Gen aesthetic
+- `[ ]` Verify animations and responsiveness

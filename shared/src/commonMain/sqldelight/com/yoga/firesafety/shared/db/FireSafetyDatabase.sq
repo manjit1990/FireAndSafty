@@ -9,6 +9,7 @@ CREATE TABLE WorkOrderEntity (
     priority TEXT NOT NULL,
     scheduledAt TEXT,
     scheduledEnd TEXT,
+    technicianId TEXT,
     technicianName TEXT,
     dispatcherNotes TEXT,
     technicianNotes TEXT,
@@ -16,8 +17,8 @@ CREATE TABLE WorkOrderEntity (
 );
 
 insertWorkOrder:
-INSERT OR REPLACE INTO WorkOrderEntity(id, buildingName, address, type, status, priority, scheduledAt, scheduledEnd, technicianName, dispatcherNotes, technicianNotes, isSynced)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO WorkOrderEntity(id, buildingName, address, type, status, priority, scheduledAt, scheduledEnd, technicianId, technicianName, dispatcherNotes, technicianNotes, isSynced)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllWorkOrders:
 SELECT * FROM WorkOrderEntity;
@@ -72,6 +73,7 @@ SELECT * FROM ChecklistItemEntity WHERE inspectionId = ?;
 -- Session Table for Auto Login
 CREATE TABLE SessionEntity (
     id INTEGER PRIMARY KEY CHECK (id = 1), -- Only one active session
+    userId TEXT NOT NULL,
     email TEXT NOT NULL,
     firstName TEXT,
     lastName TEXT,
@@ -80,8 +82,8 @@ CREATE TABLE SessionEntity (
 );
 
 saveSession:
-INSERT OR REPLACE INTO SessionEntity(id, email, firstName, lastName, role, token)
-VALUES (1, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SessionEntity(id, userId, email, firstName, lastName, role, token)
+VALUES (1, ?, ?, ?, ?, ?, ?);
 
 getSession:
 SELECT * FROM SessionEntity WHERE id = 1;

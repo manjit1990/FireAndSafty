@@ -14,9 +14,11 @@ import com.yoga.firesafety.shared.presentation.auth.LoginScreen
 import com.yoga.firesafety.shared.presentation.auth.SignupScreen
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderListScreen
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderDetailsScreen
+import com.yoga.firesafety.shared.presentation.dashboard.CompleteVisitScreen
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.inspection.InspectionFormScreen
 import com.yoga.firesafety.shared.presentation.admin.AdminDashboardScreen
+import com.yoga.firesafety.shared.presentation.admin.AdminWorkOrderDetailsScreen
 import com.yoga.firesafety.shared.presentation.admin.CreateWorkOrderScreen
 import com.yoga.firesafety.shared.presentation.admin.ScheduleWorkOrderScreen
 import com.yoga.firesafety.shared.presentation.admin.UserManagementScreen
@@ -99,7 +101,12 @@ fun MainNavigation(
                 onCreateOrderClick = { navController.navigate("create_work_order") },
                 onManageUsersClick = { navController.navigate("user_management") },
                 onWorkOrderClick = { orderId -> 
-                    navController.navigate("schedule_work_order/$orderId")
+                    val order = viewModel.workOrders.value.find { it.id == orderId }
+                    if (order?.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.NEW) {
+                        navController.navigate("schedule_work_order/$orderId")
+                    } else {
+                        navController.navigate("admin_work_order_details/$orderId")
+                    }
                 },
                 viewModel = viewModel
             )
@@ -141,13 +148,38 @@ fun MainNavigation(
                 WorkOrderDetailsScreen(
                     order = order,
                     onBackClick = { navController.popBackStack() },
-                    onStartVisit = { /* Logic to start visit */ },
-                    onCompleteVisit = { /* Logic to complete visit */ },
+                    onStartVisit = { viewModel.startVisit(order.id) },
+                    onCompleteVisit = { navController.navigate("complete_visit/${order.id}") },
                     onChecklistClick = { type: String ->
                         navController.navigate("inspection_form/$type")
                     }
                 )
             }
+        }
+        composable(
+            "complete_visit/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            CompleteVisitScreen(
+                orderId = orderId,
+                onBackClick = { navController.popBackStack() },
+                onCompleted = {
+                    navController.navigate("dashboard") {
+                        popUpTo("dashboard") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            "admin_work_order_details/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            AdminWorkOrderDetailsScreen(
+                orderId = orderId,
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(
             "inspection_form/{formType}",

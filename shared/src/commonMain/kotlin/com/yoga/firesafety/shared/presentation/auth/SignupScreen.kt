@@ -212,7 +212,7 @@ fun SignupScreen(
                     Button(
                         onClick = { 
                             val fullPhoneNumber = "${selectedCountry.code}${phoneNumber}"
-                            viewModel.signup(firstName, lastName, email, password, if (phoneNumber.isBlank()) null else fullPhoneNumber)
+                            viewModel.signup(firstName, lastName, email, password, fullPhoneNumber)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -221,7 +221,7 @@ fun SignupScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = state !is SignupState.Loading && email.isNotBlank() && password.isNotBlank() && firstName.isNotBlank()
+                        enabled = state !is SignupState.Loading && email.isNotBlank() && password.isNotBlank() && firstName.isNotBlank() && phoneNumber.isNotBlank()
                     ) {
                         if (state is SignupState.Loading) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

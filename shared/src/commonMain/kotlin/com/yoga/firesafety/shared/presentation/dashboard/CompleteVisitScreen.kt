@@ -21,8 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.WorkOrder
-import kotlinx.datetime.Clock as KtClock
-import kotlinx.datetime.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +36,7 @@ fun CompleteVisitScreen(
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
     val order = workOrders.find { it.id == orderId }
-    val today = remember { KtClock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
 
     var notes by remember { mutableStateOf("") }
     var resolvedIssue by remember { mutableStateOf<Boolean?>(null) }

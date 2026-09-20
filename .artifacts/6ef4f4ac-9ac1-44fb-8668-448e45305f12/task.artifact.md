@@ -1,7 +1,8 @@
-- [x] Fix `Clock.System` references for iOS compatibility
-    - [x] Update `ScheduleWorkOrderScreen.kt`
-    - [x] Update `CompleteVisitScreen.kt`
-    - [x] Update `WorkOrderComponents.kt`
-    - [x] Update `WorkOrderListScreen.kt`
-- [x] Verify Android build
-- [x] Update walkthrough
+- [ ] `[/]` Identify all `System` usages in `commonMain`
+- [ ] `[ ]` Replace with KMP-compatible APIs as requested
+    - [ ] Update `ScheduleWorkOrderScreen.kt`
+    - [ ] Update `CompleteVisitScreen.kt`
+    - [ ] Update `WorkOrderComponents.kt`
+    - [ ] Update `WorkOrderListScreen.kt`
+- [ ] `[ ]` Run `./gradlew :shared:linkDebugFrameworkIosArm64`
+- [ ] `[ ]` Summarize changes

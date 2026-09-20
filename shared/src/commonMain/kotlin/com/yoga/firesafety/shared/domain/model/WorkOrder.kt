@@ -1,7 +1,7 @@
 package com.yoga.firesafety.shared.domain.model
 
 import kotlinx.serialization.Serializable
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.*
 
 @Serializable
 data class WorkOrder(
@@ -15,6 +15,7 @@ data class WorkOrder(
     val scheduledEnd: String? = null,
     val technicianId: String? = null,
     val technicianName: String? = null,
+    val technicianPhoneNumber: String? = null,
     val assignedAt: String? = null,
     val assignedById: String? = null,
     val assignedByName: String? = null,
@@ -26,3 +27,32 @@ data class WorkOrder(
     val completionQuestions: Map<String, String> = emptyMap(),
     val completedAt: String? = null
 )
+
+fun WorkOrder.checkIfOverdue(now: kotlinx.datetime.Instant): Boolean {
+    if (status == WorkOrderStatus.COMPLETED || 
+        status == WorkOrderStatus.STARTED || 
+        status == WorkOrderStatus.IN_PROGRESS) return false
+    
+    if (scheduledAt.isNullOrBlank()) return false
+    
+    return try {
+        val scheduledInstant = kotlinx.datetime.LocalDateTime.parse(scheduledAt).toInstant(kotlinx.datetime.TimeZone.currentSystemDefault())
+        now > scheduledInstant
+    } catch (e: Exception) {
+        false
+    }
+}
+
+fun WorkOrder.checkIfCompletionOverdue(now: kotlinx.datetime.Instant): Boolean {
+    if (status != WorkOrderStatus.STARTED && 
+        status != WorkOrderStatus.IN_PROGRESS) return false
+    
+    if (scheduledEnd.isNullOrBlank()) return false
+    
+    return try {
+        val endInstant = kotlinx.datetime.LocalDateTime.parse(scheduledEnd).toInstant(kotlinx.datetime.TimeZone.currentSystemDefault())
+        now > endInstant
+    } catch (e: Exception) {
+        false
+    }
+}

@@ -29,20 +29,26 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AdminWorkOrderDetailsScreen(
     orderId: String,
     onBackClick: () -> Unit,
+    onEditClick: (String) -> Unit,
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
     val order = workOrders.find { it.id == orderId }
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Task Monitor", fontWeight = FontWeight.ExtraBold) },
+                title = { Text("Task Details", fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { padding ->
@@ -54,47 +60,121 @@ fun AdminWorkOrderDetailsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(24.dp)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Status Header
+                // Status Header Banner
                 StatusBanner(status = order.status)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // Main Info Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = order.type,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text("#${order.id}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                        }
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
+                        Text(
+                            text = order.buildingName,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Surface(
+                            onClick = {
+                                val url = "https://www.google.com/maps/search/?api=1&query=${order.buildingName}, ${order.address}".replace(" ", "%20")
+                                try { uriHandler.openUri(url) } catch (e: Exception) {}
+                            },
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFFFF4B66), modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = order.address,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
 
-                Text(
-                    order.buildingName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Text(
-                    order.address,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Assignment Detail Card
+                // Assignment Detail Section
                 AdminDetailSection("Technician Assignment") {
-                    AdminInfoRow(Icons.Default.Person, "Technician", order.technicianName ?: "Unassigned")
-                    AdminInfoRow(Icons.Default.Badge, "ID", order.technicianId ?: "N/A")
-                    AdminInfoRow(Icons.Default.Schedule, "Scheduled", formatWorkOrderDateTimeRange(order.scheduledAt, order.scheduledEnd))
+                    AdminInfoRow(Icons.Default.Person, "Assignee", order.technicianName ?: "Waiting for Assignment")
+                    if (!order.technicianPhoneNumber.isNullOrBlank()) {
+                        AdminInfoRow(Icons.Default.Phone, "Contact", order.technicianPhoneNumber)
+                    }
+                    AdminInfoRow(Icons.Default.CalendarMonth, "Scheduled", formatWorkOrderDateTimeRange(order.scheduledAt, order.scheduledEnd))
+                    
+                    if (order.status == WorkOrderStatus.ASSIGNED || order.status == WorkOrderStatus.NEW) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedButton(
+                            onClick = { onEditClick(order.id) },
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("EDIT ASSIGNMENT", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
 
                 if (order.status == WorkOrderStatus.COMPLETED) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AdminDetailSection("Completion Report") {
-                        AdminInfoRow(Icons.Default.CheckCircle, "Completed On", formatIsoDateTime(order.completedAt))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Questionnaire Results:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    AdminDetailSection("Job Completion Report") {
+                        AdminInfoRow(Icons.Default.AssignmentTurnedIn, "Status", "Verified & Closed")
+                        AdminInfoRow(Icons.Default.CheckCircle, "Finished On", formatIsoDateTime(order.completedAt))
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text("Questionnaire Results", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(modifier = Modifier.height(12.dp))
                         order.completionQuestions.forEach { (q, a) ->
                             AdminQuestionRow(q, a)
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Completion Notes:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                        Text(order.completionNotes ?: "No notes provided", style = MaterialTheme.typography.bodyMedium)
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text("On-Site Notes", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = order.completionNotes ?: "No specific notes recorded by technician.",
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 
@@ -107,24 +187,33 @@ fun AdminWorkOrderDetailsScreen(
 @Composable
 fun StatusBanner(status: WorkOrderStatus) {
     val (color, text) = when(status) {
-        WorkOrderStatus.STARTED -> Color(0xFF60A5FA) to "TECHNICIAN IS ON-SITE"
-        WorkOrderStatus.COMPLETED -> Color(0xFF2E7D32) to "TASK COMPLETED"
-        else -> MaterialTheme.colorScheme.primary to status.name
+        WorkOrderStatus.NEW -> Color(0xFF3B82F6) to "UNASSIGNED / NEW"
+        WorkOrderStatus.ASSIGNED -> Color(0xFFF59E0B) to "TECHNICIAN ASSIGNED"
+        WorkOrderStatus.STARTED, WorkOrderStatus.IN_PROGRESS -> Color(0xFF10B981) to "TECHNICIAN IS ON-SITE"
+        WorkOrderStatus.COMPLETED -> Color(0xFF22C55E) to "TASK COMPLETED SUCCESSFULLY"
+        WorkOrderStatus.CANCELLED -> Color(0xFFEF4444) to "TASK CANCELLED"
+        else -> MaterialTheme.colorScheme.primary to status.name.replace("_", " ")
     }
     
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = color.copy(alpha = 0.1f),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f))
+        color = color.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, color.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(10.dp).background(color, CircleShape))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(text, style = MaterialTheme.typography.labelLarge, color = color, fontWeight = FontWeight.ExtraBold)
+            Surface(modifier = Modifier.size(12.dp), shape = CircleShape, color = color) {}
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                color = color,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp
+            )
         }
     }
 }

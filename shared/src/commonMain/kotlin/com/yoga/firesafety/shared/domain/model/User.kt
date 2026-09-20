@@ -12,5 +12,6 @@ data class User(
     val phoneNumber: String,
     val isAdmin: Boolean = false,
     val isActive: Boolean = true,
-    val profileImageUrl: String? = null
+    val profileImageUrl: String? = null,
+    val deviceId: String? = null
 )

@@ -30,7 +30,15 @@ class LoginViewModel(
                 
                 _uiState.value = LoginState.Success(effectiveRole)
             } catch (e: Exception) {
-                _uiState.value = LoginState.Error(e.message ?: "Unknown error")
+                // Printing the full error to help debugging
+                println("Login Error Details: ${e.message}")
+                val friendlyMessage = when {
+                    e.message?.contains("user-not-found") == true -> "No user found with this email."
+                    e.message?.contains("wrong-password") == true -> "Incorrect password. Please try again."
+                    e.message?.contains("network-request-failed") == true -> "Network error. Check your internet."
+                    else -> e.message ?: "Authentication failed"
+                }
+                _uiState.value = LoginState.Error(friendlyMessage)
             }
         }
     }

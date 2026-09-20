@@ -12,8 +12,8 @@ import com.yoga.firesafety.shared.presentation.auth.LoginViewModel
 import com.yoga.firesafety.shared.presentation.auth.SignupViewModel
 import com.yoga.firesafety.shared.presentation.admin.UserManagementViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
-import com.yoga.firesafety.shared.presentation.dashboard.ProfileViewModel
 import com.yoga.firesafety.shared.presentation.MainViewModel
+import com.yoga.firesafety.shared.util.NotificationService
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -51,12 +51,11 @@ val commonModule = module {
         FireSafetyDatabase(get<DriverFactory>().createDriver())
     }
     single<WorkOrderRepository> { FirebaseWorkOrderRepository() }
-    single<UserRepository> { FirebaseUserRepository() }
+    single<UserRepository> { FirebaseUserRepository(get()) }
     single<SessionRepository> { SessionRepositoryImpl(get()) }
     factory { LoginViewModel(get(), get()) }
     factory { SignupViewModel(get(), get()) }
     factory { UserManagementViewModel(get()) }
     factory { WorkOrderViewModel(get()) }
-    factory { ProfileViewModel(get()) }
-    factory { MainViewModel(get()) }
+    factory { MainViewModel(get(), get(), get()) }
 }

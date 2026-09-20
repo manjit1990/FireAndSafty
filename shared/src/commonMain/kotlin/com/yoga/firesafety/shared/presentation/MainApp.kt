@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yoga.firesafety.shared.domain.model.Role
+import com.yoga.firesafety.shared.presentation.BrandedSplashScreen
 import com.yoga.firesafety.shared.presentation.auth.LoginScreen
 import com.yoga.firesafety.shared.presentation.auth.SignupScreen
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderListScreen
@@ -30,12 +31,7 @@ fun MainApp(viewModel: MainViewModel = koinViewModel()) {
 
     when (val state = authState) {
         is AuthState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            BrandedSplashScreen()
         }
         is AuthState.Unauthenticated -> {
             MainNavigation("login", viewModel)
@@ -178,7 +174,8 @@ fun MainNavigation(
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             AdminWorkOrderDetailsScreen(
                 orderId = orderId,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onEditClick = { id -> navController.navigate("schedule_work_order/$id") }
             )
         }
         composable(

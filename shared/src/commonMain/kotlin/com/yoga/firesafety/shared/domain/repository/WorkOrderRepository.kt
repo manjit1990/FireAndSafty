@@ -13,6 +13,7 @@ interface WorkOrderRepository {
         id: String,
         technicianId: String,
         technicianName: String,
+        technicianPhoneNumber: String?,
         scheduledAt: String?,
         scheduledEnd: String?,
         assignedAt: String,

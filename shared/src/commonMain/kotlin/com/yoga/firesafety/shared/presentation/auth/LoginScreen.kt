@@ -1,8 +1,11 @@
 package com.yoga.firesafety.shared.presentation.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -13,7 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,8 +24,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.Role
+import org.jetbrains.compose.resources.painterResource
+import firesafetyservicemanagement.shared.generated.resources.Res
+import firesafetyservicemanagement.shared.generated.resources.app_logo
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: (Role) -> Unit,
@@ -43,239 +50,177 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = if (isSystemInDarkTheme()) {
-                        listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.background)
-                    } else {
-                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
-                    }
-                )
-            )
+            .background(Color(0xFFF8F9FB))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Logo Section
-            Surface(
-                modifier = Modifier.size(90.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        modifier = Modifier.size(44.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            Text(
-                "FireSafety",
-                style = MaterialTheme.typography.headlineLarge,
-                color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onBackground else Color.White,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Text(
-                "Service Portal",
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else Color.White.copy(alpha = 0.8f)
+            Image(
+                painter = painterResource(Res.drawable.app_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(24.dp))
             )
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "TORBRAM",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color(0xFF131A30),
+                fontWeight = FontWeight.Black,
+                fontSize = 28.sp
+            )
+            Text(
+                text = "FIRE PROTECTION",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF131A30).copy(alpha = 0.5f),
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Login Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp, 
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                )
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(32.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "Welcome Back",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Email Address") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                        )
+                        text = "Welcome Back",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color(0xFF131A30),
+                        fontWeight = FontWeight.Black
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = { Text("Email Address", color = Color(0xFF131A30).copy(alpha = 0.3f)) },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(20.dp)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF131A30)),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF3B82F6),
+                            unfocusedBorderColor = Color.Black.copy(alpha = 0.05f),
+                            unfocusedContainerColor = Color(0xFFF8F9FB),
+                            focusedContainerColor = Color(0xFFF8F9FB)
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        placeholder = { Text("Password", color = Color(0xFF131A30).copy(alpha = 0.3f)) },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(20.dp)) },
                         trailingIcon = {
-                            val image = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else Icons.Default.VisibilityOff
-
-                            val description = if (passwordVisible) "Hide password" else "Show password"
-
+                            val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(imageVector = image, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color(0xFF131A30).copy(alpha = 0.3f))
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF131A30)),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                            focusedBorderColor = Color(0xFF3B82F6),
+                            unfocusedBorderColor = Color.Black.copy(alpha = 0.05f),
+                            unfocusedContainerColor = Color(0xFFF8F9FB),
+                            focusedContainerColor = Color(0xFFF8F9FB)
                         )
                     )
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     
                     Button(
                         onClick = { viewModel.login(email, password) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(60.dp),
+                            .height(48.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        enabled = state !is LoginState.Loading,
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                        enabled = state !is LoginState.Loading
                     ) {
                         if (state is LoginState.Loading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                         } else {
-                            Text(
-                                "SIGN IN",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 1.sp
-                            )
+                            Text("SIGN IN", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         }
                     }
                     
                     if (state is LoginState.Error) {
-                        val fullMessage = (state as LoginState.Error).message
-                        val displayMessage = when {
-                            fullMessage.contains("Bad credentials") || fullMessage.contains("Invalid email") -> "Invalid email or password"
-                            fullMessage.contains("Connect") || fullMessage.contains("timeout") -> "Server is starting... please wait"
-                            else -> "Authentication Failed"
-                        }
-                        
                         Surface(
-                            modifier = Modifier.padding(top = 20.dp),
-                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(8.dp)
+                            modifier = Modifier.padding(top = 16.dp),
+                            color = Color(0xFFFF4B66).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                displayMessage,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.bodySmall,
+                                text = (state as LoginState.Error).message,
+                                color = Color(0xFFFF4B66),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    // Quick Login Section
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Text(
-                        "FAST ACCESS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        FilledTonalButton(
-                            onClick = { 
-                                email = "admin@demo.com"
-                                password = "password"
-                                viewModel.login(email, password)
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("ADMIN", style = MaterialTheme.typography.labelMedium)
-                        }
-                        
-                        FilledTonalButton(
-                            onClick = { 
-                                email = "tech@demo.com"
-                                password = "password"
-                                viewModel.login(email, password)
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("TECH", style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            TextButton(onClick = onCreateAccountClick) {
+            TextButton(
+                onClick = onCreateAccountClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "New here?",
+                        color = Color(0xFF131A30).copy(alpha = 0.4f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Create an account",
+                        color = Color(0xFF3B82F6),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+            
+            TextButton(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
-                    "New here? Create an account",
-                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary else Color.White,
-                    style = MaterialTheme.typography.labelLarge
+                    text = "Forgot Password?",
+                    color = Color(0xFF131A30).copy(alpha = 0.3f),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
             
-            TextButton(onClick = {}) {
-                Text(
-                    "Forgot Password?",
-                    color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurfaceVariant else Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

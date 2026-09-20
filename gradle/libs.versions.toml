@@ -31,6 +31,8 @@ sqlDelight = "2.3.2"
 koin = "4.1.0-Beta5"
 firebase-kotlin = "2.7.0"
 google-services = "4.5.0"
+google-maps-compose = "6.1.0"
+play-services-maps = "20.0.0"
 
 androidx-navigation = "2.8.0-alpha10"
 androidx-core-splashscreen = "1.0.1"
@@ -97,6 +99,8 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebase-kotlin" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-kotlin" }
 firebase-common = { module = "dev.gitlive:firebase-common", version.ref = "firebase-kotlin" }
+google-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "google-maps-compose" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

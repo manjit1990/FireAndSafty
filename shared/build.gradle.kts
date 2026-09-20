@@ -75,6 +75,8 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.koin.android)
+            implementation(libs.google.maps.compose)
+            implementation(libs.play.services.maps)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)

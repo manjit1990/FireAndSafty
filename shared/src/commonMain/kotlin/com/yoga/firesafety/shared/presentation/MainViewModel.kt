@@ -3,20 +3,26 @@ package com.yoga.firesafety.shared.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yoga.firesafety.shared.domain.repository.SessionRepository
+import com.yoga.firesafety.shared.domain.repository.UserRepository
 import com.yoga.firesafety.shared.domain.repository.UserSession
+import com.yoga.firesafety.shared.util.DeviceIdProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 class MainViewModel(
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val userRepository: UserRepository,
+    private val deviceIdProvider: DeviceIdProvider
 ) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState
+    
+    private var monitoringJob: Job? = null
 
     init {
         checkSession()
@@ -25,30 +31,52 @@ class MainViewModel(
     private fun checkSession() {
         viewModelScope.launch {
             try {
-                _authState.value = withTimeoutOrNull(SESSION_CHECK_TIMEOUT_MS) {
+                val currentSession = withTimeoutOrNull(SESSION_CHECK_TIMEOUT_MS) {
                     val session = sessionRepository.getSession()
                     val firebaseUser = Firebase.auth.currentUser
 
                     if (session != null && firebaseUser != null) {
-                        AuthState.Authenticated(session)
+                        session
                     } else {
-                        AuthState.Unauthenticated
+                        null
                     }
-                } ?: AuthState.Unauthenticated
+                }
+
+                if (currentSession != null) {
+                    _authState.value = AuthState.Authenticated(currentSession)
+                    startMonitoring(currentSession.userId)
+                } else {
+                    _authState.value = AuthState.Unauthenticated
+                }
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
                 try {
                     sessionRepository.clearSession()
                 } catch (ignored: Exception) {
-                    // Best effort cleanup only; opening the app should still continue.
                 }
                 _authState.value = AuthState.Unauthenticated
             }
         }
     }
 
+    private fun startMonitoring(userId: String) {
+        monitoringJob?.cancel()
+        monitoringJob = viewModelScope.launch {
+            val currentDeviceId = deviceIdProvider.getDeviceId()
+            userRepository.observeUser(userId)
+                .filterNotNull()
+                .collect { user ->
+                    // If deviceId exists in DB and doesn't match current device, force logout
+                    if (user.deviceId != null && user.deviceId != currentDeviceId) {
+                        logout()
+                    }
+                }
+        }
+    }
+
     fun logout() {
+        monitoringJob?.cancel()
         viewModelScope.launch {
             Firebase.auth.signOut()
             sessionRepository.clearSession()

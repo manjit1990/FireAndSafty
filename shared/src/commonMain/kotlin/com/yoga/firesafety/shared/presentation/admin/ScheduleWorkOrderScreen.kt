@@ -28,6 +28,7 @@ import com.yoga.firesafety.shared.presentation.dashboard.formatWorkOrderDateTime
 import com.yoga.firesafety.shared.presentation.inspection.DropdownField
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,11 +66,24 @@ fun ScheduleWorkOrderScreen(
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
     
-    val datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val today = Clock.System.now().toEpochMilliseconds()
+                // Allow today and future. Millis are for start of day in UTC usually.
+                // Subtract 1 day in millis to be safe about timezones if needed, 
+                // but let's try strict today first.
+                return utcTimeMillis >= today - 86400000 
+            }
+        }
+    )
     val startTimePickerState = rememberTimePickerState()
     val endTimePickerState = rememberTimePickerState()
     val isAssigning = assignmentState is AssignmentState.Loading
     val assignmentError = (assignmentState as? AssignmentState.Error)?.message
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(order?.id, order?.technicianId, order?.scheduledAt, order?.scheduledEnd, technicians) {
         if (order == null) return@LaunchedEffect
@@ -101,7 +115,8 @@ fun ScheduleWorkOrderScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         if (order == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -234,6 +249,29 @@ fun ScheduleWorkOrderScreen(
                     
                     Button(
                         onClick = {
+                            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                            val isToday = selectedDate == now.date.toString()
+                            
+                            val startParts = selectedStartTime.split(":")
+                            val endParts = selectedEndTime.split(":")
+                            
+                            if (startParts.size == 2 && endParts.size == 2) {
+                                val startHour = startParts[0].toInt()
+                                val startMin = startParts[1].toInt()
+                                val endHour = endParts[0].toInt()
+                                val endMin = endParts[1].toInt()
+                                
+                                if (isToday && (startHour < now.hour || (startHour == now.hour && startMin < now.minute))) {
+                                    scope.launch { snackbarHostState.showSnackbar("Arrival time cannot be in the past") }
+                                    return@Button
+                                }
+                                
+                                if (endHour < startHour || (endHour == startHour && endMin <= startMin)) {
+                                    scope.launch { snackbarHostState.showSnackbar("Departure must be after Arrival") }
+                                    return@Button
+                                }
+                            }
+
                             selectedTech?.let { technician ->
                                 val technicianName = "${technician.firstName} ${technician.lastName}".trim()
                                 val isoStart = "${selectedDate}T${selectedStartTime}:00"
@@ -242,6 +280,7 @@ fun ScheduleWorkOrderScreen(
                                     orderId = orderId,
                                     technicianId = technician.id,
                                     technicianName = technicianName.ifEmpty { technician.email },
+                                    technicianPhoneNumber = technician.phoneNumber,
                                     scheduledAt = isoStart,
                                     scheduledEnd = isoEnd,
                                     assignedAt = Clock.System.now().toString(),
@@ -292,10 +331,22 @@ fun ScheduleWorkOrderScreen(
                         selectedDate = date.toString()
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text("OK", fontWeight = FontWeight.ExtraBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    headlineContentColor = MaterialTheme.colorScheme.primary,
+                    selectedDayContainerColor = MaterialTheme.colorScheme.primary
+                )
+            )
         }
     }
     
@@ -420,6 +471,20 @@ fun TimePickerDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = confirmButton,
-        text = content
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancel")
+            }
+        },
+        text = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                content()
+            }
+        },
+        shape = RoundedCornerShape(28.dp),
+        tonalElevation = 6.dp
     )
 }

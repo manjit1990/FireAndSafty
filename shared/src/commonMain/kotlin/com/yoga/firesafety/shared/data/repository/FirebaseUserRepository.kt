@@ -3,13 +3,14 @@ package com.yoga.firesafety.shared.data.repository
 import com.yoga.firesafety.shared.domain.model.Role
 import com.yoga.firesafety.shared.domain.model.User
 import com.yoga.firesafety.shared.domain.repository.UserRepository
+import com.yoga.firesafety.shared.util.DeviceIdProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class FirebaseUserRepository : UserRepository {
+class FirebaseUserRepository(private val deviceIdProvider: DeviceIdProvider) : UserRepository {
     private val auth = Firebase.auth
     private val firestore = Firebase.firestore
     private val collection = firestore.collection("users")
@@ -25,7 +26,8 @@ class FirebaseUserRepository : UserRepository {
             lastName = lastName,
             role = role,
             phoneNumber = phoneNumber,
-            isAdmin = false
+            isAdmin = false,
+            deviceId = deviceIdProvider.getDeviceId()
         )
         
         collection.document(user.id).set(user)
@@ -35,6 +37,11 @@ class FirebaseUserRepository : UserRepository {
     override suspend fun login(email: String, password: String): User {
         val result = auth.signInWithEmailAndPassword(email, password)
         val firebaseUser = result.user ?: throw Exception("Login failed")
+        
+        val currentDeviceId = deviceIdProvider.getDeviceId()
+        
+        // Update document with new deviceId on login
+        collection.document(firebaseUser.uid).update("deviceId" to currentDeviceId)
         
         val doc = collection.document(firebaseUser.uid).get()
         return doc.data<User>()
@@ -63,5 +70,9 @@ class FirebaseUserRepository : UserRepository {
             "phoneNumber" to phoneNumber,
             "profileImageUrl" to profileImageUrl
         )
+    }
+
+    override fun observeUser(userId: String): Flow<User?> {
+        return collection.document(userId).snapshots.map { it.data() }
     }
 }

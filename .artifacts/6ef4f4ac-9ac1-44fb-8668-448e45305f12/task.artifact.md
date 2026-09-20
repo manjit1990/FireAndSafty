@@ -1,0 +1,3 @@
+- [x] Update `ios-build.yml` to include Xcode build and archiving
+- [x] Verify workflow syntax
+- [x] Create walkthrough

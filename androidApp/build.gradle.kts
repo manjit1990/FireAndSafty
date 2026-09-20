@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
 
     implementation(libs.compose.uiToolingPreview)
+    implementation(libs.kotlinx.datetime)
     debugImplementation(libs.compose.uiTooling)
 }
 

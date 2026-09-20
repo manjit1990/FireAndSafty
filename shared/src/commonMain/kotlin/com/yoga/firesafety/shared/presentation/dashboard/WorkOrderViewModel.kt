@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewModel() {
+    private val _selectedTabIndex = MutableStateFlow(0)
+    val selectedTabIndex: StateFlow<Int> = _selectedTabIndex
+
     private val _assignmentState = MutableStateFlow<AssignmentState>(AssignmentState.Idle)
     val assignmentState: StateFlow<AssignmentState> = _assignmentState
 
@@ -24,6 +27,10 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
 
     fun setTechnicianFilter(id: String) {
         _technicianId.value = id
+    }
+
+    fun updateSelectedTab(index: Int) {
+        _selectedTabIndex.value = index
     }
 
     fun getWorkOrdersForTechnician(technicianId: String): StateFlow<List<WorkOrder>> {
@@ -47,6 +54,7 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
         orderId: String,
         technicianId: String,
         technicianName: String,
+        technicianPhoneNumber: String?,
         scheduledAt: String?,
         scheduledEnd: String?,
         assignedAt: String,
@@ -60,6 +68,7 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
                     id = orderId,
                     technicianId = technicianId,
                     technicianName = technicianName,
+                    technicianPhoneNumber = technicianPhoneNumber,
                     scheduledAt = scheduledAt,
                     scheduledEnd = scheduledEnd,
                     assignedAt = assignedAt,

@@ -11,14 +11,22 @@ import androidx.compose.material.icons.filled.Engineering
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.WorkOrder
+import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
+import com.yoga.firesafety.shared.domain.model.checkIfOverdue
+import com.yoga.firesafety.shared.domain.model.checkIfCompletionOverdue
+import kotlinx.datetime.*
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 import androidx.compose.foundation.border
 import com.yoga.firesafety.shared.presentation.theme.AppColors
@@ -32,12 +40,34 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.CameraAlt
 
 @Composable
-fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
+fun WorkOrderScheduleItem(
+    order: WorkOrder, 
+    hasLiveTask: Boolean = false,
+    onClick: () -> Unit
+) {
     val isLive = order.status.name == "STARTED" || order.status.name == "IN_PROGRESS" || order.status.name == "LIVE"
+    val isCompleted = order.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED
+    
+    var currentTime by remember { mutableStateOf<kotlinx.datetime.Instant>(Clock.System.now()) }
+    LaunchedEffect(Unit) {
+        while(true) {
+            delay(30.seconds) // Update every 30 seconds
+            currentTime = Clock.System.now()
+        }
+    }
+
+    val isOverdue = remember(order, currentTime) {
+        order.checkIfOverdue(currentTime)
+    }
+
+    val isCompletionOverdue = remember(order, currentTime) {
+        order.checkIfCompletionOverdue(currentTime)
+    }
+
     val priorityColor = when(order.priority.uppercase()) {
         "HIGH" -> Color(0xFFFF4B66)
-        "MEDIUM" -> Color(0xFFFFB03B)
-        else -> Color(0xFF00D2FF)
+        "MEDIUM" -> Color(0xFFF59E0B) // Amber
+        else -> Color(0xFF3B82F6) // Blue
     }
 
     if (isLive) {
@@ -45,7 +75,7 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 20.dp, vertical = 10.dp)
                 .clickable(onClick = onClick),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF0E1629)),
@@ -104,6 +134,29 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                             }
                         }
                     }
+
+                    if (isCompletionOverdue) {
+                        Surface(
+                            color = Color(0xFFFF4B66).copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(100.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B66).copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFFF4B66), modifier = Modifier.size(14.dp))
+                                Text(
+                                    text = "COMPLETION OVERDUE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFFF4B66),
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // Title Section
@@ -132,13 +185,6 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                             Text("Plot 104, Active Field Region", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.4f))
                         }
                     }
-                    Text(
-                        text = "Map",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF3B82F6),
-                        modifier = Modifier.clickable { /* Map Action */ }
-                    )
                 }
 
                 HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
@@ -167,119 +213,280 @@ fun WorkOrderScheduleItem(order: WorkOrder, onClick: () -> Unit) {
                         )
                     }
                 }
-
-                // Assignee Profile Section
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val nameStr = order.technicianName ?: "Unassigned"
-                        val initial = nameStr.take(2).uppercase()
-                        Surface(
-                            modifier = Modifier.size(44.dp),
-                            shape = CircleShape,
-                            color = Color(0xFF3B82F6)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(initial, fontWeight = FontWeight.ExtraBold, color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(nameStr, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                                Surface(color = Color.White.copy(alpha = 0.08f), shape = RoundedCornerShape(4.dp)) {
-                                    Text("Lead", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
-                                }
-                            }
-                            Text("+91 98765 43210", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.4f))
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(onClick = {}, modifier = Modifier.background(Color.White.copy(alpha = 0.05f), CircleShape).size(40.dp)) {
-                            Icon(Icons.Default.Phone, contentDescription = null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
-                        }
-                        IconButton(onClick = {}, modifier = Modifier.background(Color.White.copy(alpha = 0.05f), CircleShape).size(40.dp)) {
-                            Icon(Icons.AutoMirrored.Filled.Comment, contentDescription = null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
-                        }
-                    }
-                }
-
-                // Footer Actions Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = onClick,
-                        modifier = Modifier.weight(1f).height(54.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6))
-                    ) {
-                        Text("Continue Checklist", fontWeight = FontWeight.ExtraBold, color = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
-                    }
-
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier.background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp)).size(54.dp)
-                    ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White.copy(alpha = 0.7f))
-                    }
-                }
             }
         }
     } else {
-        // Luxury Standard/Upcoming Card Design
+        // Luxury Standard/Agenda Card Design matching Mockup
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .padding(horizontal = 20.dp, vertical = 4.dp)
                 .clickable(onClick = onClick),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0B0F19)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.03f))
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Box(modifier = Modifier.size(6.dp).background(priorityColor, CircleShape))
-                        Text(order.type.uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = priorityColor.copy(alpha = 0.8f))
-                    }
-                    Surface(color = Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(6.dp)) {
-                        Text(order.status.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Text(order.buildingName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color.White)
-
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
-                    Text(order.address, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.4f), maxLines = 1)
-                }
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
-                        Text(formatWorkOrderDateTimeRange(order.scheduledAt, order.scheduledEnd).substringAfter(", "), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                    }
-
-                    if (!order.technicianName.isNullOrBlank()) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            val initials = order.technicianName.take(2).uppercase()
-                            Surface(modifier = Modifier.size(24.dp), shape = CircleShape, color = Color.White.copy(alpha = 0.1f)) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(initials, style = MaterialTheme.typography.labelSmall, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+            ) {
+                // Mockup high-contrast vertical accent bar
+                Box(
+                    modifier = Modifier
+                        .width(7.dp)
+                        .fillMaxHeight()
+                        .background(
+                            when {
+                                isCompleted -> Color(0xFF94A3B8)
+                                isOverdue -> Color(0xFFFF4B66)
+                                else -> priorityColor
+                            }
+                        )
+                )
+                
+                Column(
+                    modifier = Modifier.padding(10.dp).weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Surface(
+                                color = Color(0xFF10B981).copy(alpha = 0.08f),
+                                shape = RoundedCornerShape(100.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Box(modifier = Modifier.size(6.dp).background(Color(0xFF10B981), CircleShape))
+                                    Text(
+                                        text = order.type.lowercase().replaceFirstChar { it.uppercase() },
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF10B981),
+                                        fontSize = 11.sp
+                                    )
                                 }
                             }
-                            Text(order.technicianName, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f))
+
+                            if (isOverdue) {
+                                Surface(
+                                    color = Color(0xFFFF4B66).copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(100.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B66).copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFFF4B66), modifier = Modifier.size(12.dp))
+                                        Text(
+                                            text = "OVERDUE - START NOW",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFFFF4B66),
+                                            fontSize = 9.sp
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            if (isCompleted) {
+                                Surface(
+                                    color = Color(0xFF64748B).copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(100.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(Icons.Default.CheckCircleOutline, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(12.dp))
+                                        Text(
+                                            text = "Completed",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF64748B),
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!isCompleted) {
+                            Surface(
+                                color = Color(0xFFF59E0B).copy(alpha = 0.05f),
+                                shape = RoundedCornerShape(100.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.3f))
+                            ) {
+                                Text(
+                                    text = "High Priority",
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E),
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                        val titleParts = order.address.split(",").take(2)
+                        val mainTitle = if (titleParts.size >= 2) "${titleParts[0]} • ${titleParts[1]}" else order.buildingName
+                        
+                        Text(
+                            text = mainTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = if (isCompleted) Color(0xFF131A30).copy(alpha = 0.6f) else Color(0xFF131A30),
+                            fontSize = 17.sp,
+                            lineHeight = 20.sp
+                        )
+                        Text(
+                            text = "Commercial Structural & Electrical Survey",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF131A30).copy(alpha = 0.4f),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            color = Color(0xFF3B82F6).copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.border(1.dp, Color.Black.copy(alpha = 0.02f), RoundedCornerShape(10.dp))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(16.dp))
+                                val startStr = order.scheduledAt?.substringAfter("T")?.take(5) ?: "00:00"
+                                val endStr = order.scheduledEnd?.substringAfter("T")?.take(5) ?: "00:00"
+                                Text(
+                                    text = "$startStr - $endStr",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF131A30),
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    text = "(2 hrs window)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF131A30).copy(alpha = 0.3f),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        
+                        // "Starts in..." badge logic
+                        if (!isCompleted) {
+                            val timeText = remember<String?>(order.scheduledAt) {
+                                calculateStartsIn(order.scheduledAt)
+                            }
+                            
+                            timeText?.let { text ->
+                                Surface(
+                                    color = Color(0xFF10B981).copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = text,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF065F46),
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = Color.Black.copy(alpha = 0.04f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Surface(
+                                modifier = Modifier.size(34.dp),
+                                shape = CircleShape,
+                                color = Color.Black.copy(alpha = 0.05f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.Black.copy(alpha = 0.2f), modifier = Modifier.size(18.dp))
+                                }
+                            }
+                            Column {
+                                Text(
+                                    text = order.technicianName ?: "Unassigned",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (isCompleted) Color(0xFF131A30).copy(alpha = 0.6f) else Color(0xFF131A30),
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    text = "Assigned Lead",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF131A30).copy(alpha = 0.3f),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                        
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                onClick = {},
+                                modifier = Modifier.size(40.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.Black.copy(alpha = 0.04f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.06f))
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Phone, contentDescription = null, tint = Color(0xFF131A30).copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
+                                }
+                            }
+                            
+                            if (!isCompleted) {
+                                Button(
+                                    onClick = onClick,
+                                    modifier = Modifier.height(40.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isOverdue) Color(0xFFFF4B66) else Color(0xFF3B82F6)
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                                    enabled = !hasLiveTask
+                                ) {
+                                    Text(
+                                        text = if (isOverdue) "START APPOINTMENT" else "Start Task",
+                                        fontWeight = FontWeight.Black,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 14.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                                }
+                            }
                         }
                     }
                 }
@@ -335,3 +542,29 @@ fun formatIsoDateTime(value: String?): String {
 
     return if (time.isBlank()) date else "$date $time"
 }
+
+fun calculateStartsIn(scheduledAt: String?): String? {
+    if (scheduledAt.isNullOrBlank()) return null
+    return try {
+        val scheduledInstant = LocalDateTime.parse(scheduledAt).toInstant(TimeZone.currentSystemDefault())
+        val now = kotlinx.datetime.Clock.System.now()
+        val diffMillis: Long = scheduledInstant.toEpochMilliseconds() - now.toEpochMilliseconds()
+        
+        val totalMinutes: Long = diffMillis / 60000L
+        if (totalMinutes <= 0L) return null
+        
+        val days = totalMinutes / (24L * 60L)
+        val remainingMinutesAfterDays = totalMinutes % (24L * 60L)
+        val hours = remainingMinutesAfterDays / 60L
+        val minutes = remainingMinutesAfterDays % 60L
+        
+        when {
+            days > 0L -> "Starts in ${days}d ${hours}h"
+            hours > 0L -> "Starts in ${hours}h ${minutes}m"
+            else -> "Starts in ${minutes}m"
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+

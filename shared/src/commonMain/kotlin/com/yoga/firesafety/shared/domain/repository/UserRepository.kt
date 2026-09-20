@@ -11,4 +11,5 @@ interface UserRepository {
     suspend fun updateUserRole(userId: String, role: Role)
     suspend fun getCurrentUser(): User?
     suspend fun updateUserProfile(userId: String, firstName: String, lastName: String, phoneNumber: String, profileImageUrl: String?)
+    fun observeUser(userId: String): Flow<User?>
 }

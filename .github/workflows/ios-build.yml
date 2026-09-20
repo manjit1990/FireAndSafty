@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-ios:
-    name: Build shared framework and iOS application
+    name: Build KMP Framework and iOS App
     runs-on: macos-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Cache Build Frameworks
+    - name: Cache Gradle Dependencies
       uses: actions/cache@v4
       with:
         path: |
@@ -40,7 +40,24 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build KMP iOS Shared Framework
-      run: ./gradlew :shared:linkReleaseFrameworkIosArm64 --stacktrace
+      run: ./gradlew :shared:linkDebugFrameworkIosArm64 --stacktrace
 
-    - name: List Output Frameworks
-      run: ls -la shared/build/bin/iosArm64/releaseFramework/ || ls -la shared/build/bin/iosArm64/
+    - name: Build iOS App (Xcode)
+      run: |
+        xcodebuild -project iosApp/iosApp.xcodeproj \
+          -scheme iosApp \
+          -sdk iphoneos \
+          -configuration Debug \
+          -derivedDataPath build-output \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGN_IDENTITY="" \
+          build
+
+    - name: Upload iOS Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-debug
+        path: |
+          build-output/Build/Products/Debug-iphoneos/*.app
+          shared/build/bin/iosArm64/debugFramework/

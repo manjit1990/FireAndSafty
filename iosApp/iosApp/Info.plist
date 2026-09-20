@@ -4,5 +4,11 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to take photos of fire safety equipment during inspections.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo library access to upload existing inspection photos and videos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need location access to show you nearby work orders and navigate to job sites.</string>
 </dict>
 </plist>

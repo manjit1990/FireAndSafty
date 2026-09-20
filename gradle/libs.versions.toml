@@ -34,7 +34,7 @@ google-services = "4.5.0"
 google-maps-compose = "6.1.0"
 play-services-maps = "20.0.0"
 
-androidx-navigation = "2.8.0-alpha10"
+androidx-navigation = "2.9.2"
 androidx-core-splashscreen = "1.0.1"
 
 [libraries]

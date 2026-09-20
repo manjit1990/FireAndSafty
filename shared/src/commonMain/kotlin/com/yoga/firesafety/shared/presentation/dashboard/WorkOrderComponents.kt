@@ -24,6 +24,7 @@ import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import com.yoga.firesafety.shared.domain.model.checkIfOverdue
 import com.yoga.firesafety.shared.domain.model.checkIfCompletionOverdue
+import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.*
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
@@ -48,11 +49,11 @@ fun WorkOrderScheduleItem(
     val isLive = order.status.name == "STARTED" || order.status.name == "IN_PROGRESS" || order.status.name == "LIVE"
     val isCompleted = order.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED
     
-    var currentTime by remember { mutableStateOf<kotlinx.datetime.Instant>(Clock.System.now()) }
+    var currentTime by remember { mutableStateOf<kotlinx.datetime.Instant>(KtClock.System.now()) }
     LaunchedEffect(Unit) {
         while(true) {
             delay(30.seconds) // Update every 30 seconds
-            currentTime = Clock.System.now()
+            currentTime = KtClock.System.now()
         }
     }
 
@@ -547,7 +548,7 @@ fun calculateStartsIn(scheduledAt: String?): String? {
     if (scheduledAt.isNullOrBlank()) return null
     return try {
         val scheduledInstant = LocalDateTime.parse(scheduledAt).toInstant(TimeZone.currentSystemDefault())
-        val now = kotlinx.datetime.Clock.System.now()
+        val now = KtClock.System.now()
         val diffMillis: Long = scheduledInstant.toEpochMilliseconds() - now.toEpochMilliseconds()
         
         val totalMinutes: Long = diffMillis / 60000L

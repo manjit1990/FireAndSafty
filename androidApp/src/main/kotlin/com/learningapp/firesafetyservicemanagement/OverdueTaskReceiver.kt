@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock as KtClock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -28,7 +28,7 @@ class OverdueTaskReceiver : BroadcastReceiver(), KoinComponent {
             try {
                 // Get the current list of work orders (this assumes they are cached or accessible)
                 val workOrders = repository.getWorkOrders().first()
-                val now = Clock.System.now()
+                val now = KtClock.System.now()
                 val startOverdueCount = workOrders.count { it.checkIfOverdue(now) }
                 val completionOverdueCount = workOrders.count { it.checkIfCompletionOverdue(now) }
 

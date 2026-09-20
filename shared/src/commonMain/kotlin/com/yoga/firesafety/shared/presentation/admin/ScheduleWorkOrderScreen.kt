@@ -26,6 +26,7 @@ import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.formatIsoDateTime
 import com.yoga.firesafety.shared.presentation.dashboard.formatWorkOrderDateTimeRange
 import com.yoga.firesafety.shared.presentation.inspection.DropdownField
+import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.coroutines.launch
@@ -69,7 +70,7 @@ fun ScheduleWorkOrderScreen(
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                val today = Clock.System.now().toEpochMilliseconds()
+                val today = KtClock.System.now().toEpochMilliseconds()
                 // Allow today and future. Millis are for start of day in UTC usually.
                 // Subtract 1 day in millis to be safe about timezones if needed, 
                 // but let's try strict today first.
@@ -249,7 +250,7 @@ fun ScheduleWorkOrderScreen(
                     
                     Button(
                         onClick = {
-                            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                            val now = KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                             val isToday = selectedDate == now.date.toString()
                             
                             val startParts = selectedStartTime.split(":")
@@ -283,7 +284,7 @@ fun ScheduleWorkOrderScreen(
                                     technicianPhoneNumber = technician.phoneNumber,
                                     scheduledAt = isoStart,
                                     scheduledEnd = isoEnd,
-                                    assignedAt = Clock.System.now().toString(),
+                                    assignedAt = KtClock.System.now().toString(),
                                     assignedById = adminId,
                                     assignedByName = adminName
                                 )

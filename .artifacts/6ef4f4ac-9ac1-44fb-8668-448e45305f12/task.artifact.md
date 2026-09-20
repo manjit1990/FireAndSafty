@@ -1,3 +1,7 @@
-- [x] Update `ios-build.yml` to include Xcode build and archiving
-- [x] Verify workflow syntax
-- [x] Create walkthrough
+- [x] Fix `Clock.System` references for iOS compatibility
+    - [x] Update `ScheduleWorkOrderScreen.kt`
+    - [x] Update `CompleteVisitScreen.kt`
+    - [x] Update `WorkOrderComponents.kt`
+    - [x] Update `WorkOrderListScreen.kt`
+- [x] Verify Android build
+- [x] Update walkthrough

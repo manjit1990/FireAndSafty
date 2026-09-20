@@ -35,6 +35,7 @@ import com.yoga.firesafety.shared.presentation.MainViewModel
 import com.yoga.firesafety.shared.presentation.AuthState
 import com.yoga.firesafety.shared.presentation.dashboard.MoreScreen
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock as KtClock
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,7 +59,7 @@ fun WorkOrderListScreen(
         }
     }
     
-    val today = remember { kotlinx.datetime.Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = remember { KtClock.System.todayIn(TimeZone.currentSystemDefault()) }
     val scope = rememberCoroutineScope()
     var selectedDate by remember { mutableStateOf(today) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -764,7 +765,7 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
     val scrollState = rememberScrollState()
     
     // Dynamic Time and Date Logic
-    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val now = remember { KtClock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
     val greeting = remember(now.hour) {
         when (now.hour) {
             in 5..11 -> "Good morning,"

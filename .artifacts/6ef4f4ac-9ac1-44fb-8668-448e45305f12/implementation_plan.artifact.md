@@ -1,32 +1,31 @@
-# Setup iOS CI/CD Build Pipeline
+# Fix "Unresolved reference 'System'" in iOS Build
 
-The user wants to generate an iOS build through a CI/CD pipeline (GitHub Actions). The current workflow only builds the shared framework. I will update it to build and archive the actual iOS application.
-
-## User Review Required
-
-> [!WARNING]
-> **Code Signing**: Building a production-ready `.ipa` for installation on a physical iPhone requires Apple Developer certificates and provisioning profiles. These cannot be easily automated in CI without adding secrets (p12 files, provisioning profiles) to the repository settings.
->
-> I will configure the pipeline to perform a **"Build and Archive"** which verifies the code is correct. To get an installable file, you will eventually need to configure "GitHub Secrets" with your Apple credentials.
+The iOS CI/CD build is failing because it cannot resolve the `System` property of `kotlinx.datetime.Clock` in several `commonMain` files. This is likely due to a name clash or a compiler issue in the experimental Kotlin 2.4.10 environment.
 
 ## Proposed Changes
 
-### [CI/CD]
+### [Shared Presentation]
 
-#### [MODIFY] [ios-build.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/.github/workflows/ios-build.yml)
+I will replace the direct usage of `Clock.System` with an aliased import or more explicit reference to avoid the "Unresolved reference 'System'" error during iOS compilation.
 
-- **Update Build Steps**:
-    - Ensure the KMP shared framework is built first.
-    - Add a step to build the Xcode project using `xcodebuild`.
-    - Configure it to use a "Generic iOS Device" destination.
-    - Add a step to upload the resulting build artifact (`.app` or `.xcarchive`) so it can be downloaded from the GitHub Actions tab.
+#### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
+- Replace `import kotlinx.datetime.*` with explicit imports including `import kotlinx.datetime.Clock`.
+- Use `Clock.System` explicitly or through an alias if necessary.
+
+#### [MODIFY] [CompleteVisitScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/CompleteVisitScreen.kt)
+- Update `kotlinx.datetime.Clock.System` to a more robust reference.
+
+#### [MODIFY] [WorkOrderComponents.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderComponents.kt)
+- Fix the `Clock.System.now()` and `kotlinx.datetime.Clock.System.now()` calls.
+
+#### [MODIFY] [WorkOrderListScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderListScreen.kt)
+- Similar fixes for `Clock.System`.
 
 ## Verification Plan
 
+### Automated Tests
+- I will attempt to trigger the CI/CD build again (or ask the user to) once the changes are applied.
+- Locally, I will run the Android build to ensure no regressions.
+
 ### Manual Verification
-- Commit the updated workflow file.
-- Push to GitHub.
-- Go to the **Actions** tab on your GitHub repository.
-- Manually trigger the "iOS Build Pipeline" (if `workflow_dispatch` is enabled) or wait for the push trigger.
-- Check the logs to ensure both the Gradle (KMP) and Xcode build steps pass.
-- Verify that a build artifact appears at the end of the run.
+- Verify that the app still correctly displays and handles dates/times on Android.

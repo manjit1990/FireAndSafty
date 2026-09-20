@@ -35,14 +35,14 @@ import com.yoga.firesafety.shared.presentation.MainViewModel
 import com.yoga.firesafety.shared.presentation.AuthState
 import com.yoga.firesafety.shared.presentation.dashboard.MoreScreen
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.plus
+import kotlinx.datetime.Instant as KotlinxInstant
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -66,7 +66,11 @@ fun WorkOrderListScreen(
         }
     }
     
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = remember { 
+        KotlinxInstant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .date 
+    }
     val scope = rememberCoroutineScope()
     var selectedDate by remember { mutableStateOf(today) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -772,7 +776,10 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
     val scrollState = rememberScrollState()
     
     // Dynamic Time and Date Logic
-    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val now = remember { 
+        KotlinxInstant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+    }
     val greeting = remember(now.hour) {
         when (now.hour) {
             in 5..11 -> "Good morning,"

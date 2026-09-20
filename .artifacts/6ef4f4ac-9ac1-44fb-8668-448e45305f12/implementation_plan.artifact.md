@@ -1,35 +1,39 @@
-# Fix iOS Build Error: Unresolved reference 'System'
+# Fix iOS Build Error: Unresolved reference 'System' (Deep Dive)
 
-The iOS compilation is failing because the compiler is unable to resolve the `System` property when using `Clock.System.now()` in several `commonMain` files. I will follow the user's specific instructions to resolve this by using explicit KMP-compatible time APIs.
+The previous attempt to fix the iOS build error using aliased imports or standard `Clock.System` calls did not resolve the issue in the CI environment. The compiler still reports `Unresolved reference 'System'` in several `commonMain` files.
+
+## Research Findings
+
+The error `Unresolved reference 'System'` when using `Clock.System` suggests that the `Clock` symbol is being resolved to a class/interface that does not have a `System` property, or the property itself is ambiguous to the Kotlin Native compiler. To fix this robustly across all platforms, I will use the fully qualified name `kotlinx.datetime.Clock.System` for every wall-clock time call.
 
 ## Proposed Changes
 
 ### [Shared Presentation]
 
-I will search and replace all usages of `System` (where used as a clock) across the specified files. To avoid resolution issues on iOS, I will use explicit imports and the requested code patterns.
+I will replace all ambiguous `Clock.System` or `System.currentTimeMillis()` calls with explicit, fully qualified Kotlin Multiplatform calls.
 
 #### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
-- Remove `import kotlinx.datetime.Clock as KtClock`.
-- Add `import kotlinx.datetime.Clock`. (User requested `kotlin.time.Clock` but `System` belongs to `kotlinx.datetime.Clock`).
-- Replace `KtClock.System.now()` with `Clock.System.now()`.
+- Replace all occurrences of `Clock.System.now()` with `kotlinx.datetime.Clock.System.now()`.
+- Ensure imports are clean and don't clash.
 
 #### [MODIFY] [CompleteVisitScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/CompleteVisitScreen.kt)
-- Remove aliased imports.
-- Use `Clock.System.todayIn(...)`.
+- Replace `Clock.System.todayIn(...)` with `kotlinx.datetime.Clock.System.todayIn(...)`.
 
 #### [MODIFY] [WorkOrderComponents.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderComponents.kt)
-- Remove aliased imports.
-- Update `KtClock.System.now()` to `Clock.System.now()`.
+- Replace all `Clock.System.now()` with `kotlinx.datetime.Clock.System.now()`.
 
 #### [MODIFY] [WorkOrderListScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderListScreen.kt)
-- Remove aliased imports.
-- Update all `KtClock.System` or `Clock.System` references.
+- Replace all `Clock.System.now()` and `Clock.System.todayIn()` with their fully qualified counterparts.
+
+#### [MODIFY] [WorkOrder.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/model/WorkOrder.kt)
+- Check and fix any time-related calls.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `./gradlew :shared:linkDebugFrameworkIosArm64` to verify the iOS compilation.
-- Run `./gradlew :androidApp:assembleDebug` to ensure Android still works.
+- **Android**: Run `./gradlew :androidApp:assembleDebug` to verify local consistency.
+- **iOS**: I will attempt to run `./gradlew :shared:linkDebugFrameworkIosArm64` if the environment allows, otherwise I will rely on the user to push and check CI, but I will double-check every single line of code first.
 
 ### Manual Verification
-- None required as these are build fixes, but I will double check the resulting code doesn't break UI logic.
+- Verify that no `java.lang.System` imports exist in `commonMain`.
+- Verify that no JVM-specific time APIs are used.

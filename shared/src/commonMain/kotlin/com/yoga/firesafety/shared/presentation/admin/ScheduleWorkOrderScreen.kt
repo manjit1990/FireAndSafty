@@ -26,7 +26,7 @@ import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.formatIsoDateTime
 import com.yoga.firesafety.shared.presentation.dashboard.formatWorkOrderDateTimeRange
 import com.yoga.firesafety.shared.presentation.inspection.DropdownField
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.Instant
@@ -253,7 +253,7 @@ fun ScheduleWorkOrderScreen(
                     
                     Button(
                         onClick = {
-                            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                            val now = kotlinx.datetime.Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
                             val isToday = selectedDate == now.date.toString()
                             
                             val startParts = selectedStartTime.split(":")
@@ -287,7 +287,7 @@ fun ScheduleWorkOrderScreen(
                                     technicianPhoneNumber = technician.phoneNumber,
                                     scheduledAt = isoStart,
                                     scheduledEnd = isoEnd,
-                                    assignedAt = Clock.System.now().toString(),
+                                    assignedAt = kotlinx.datetime.Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds()).toString(),
                                     assignedById = adminId,
                                     assignedByName = adminName
                                 )

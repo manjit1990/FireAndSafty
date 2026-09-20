@@ -1,39 +1,22 @@
-# Fix iOS Build Error: Unresolved reference 'System' (Deep Dive)
+# Fix iOS Linking Error: "Function getBackStackEntry is not found"
 
-The previous attempt to fix the iOS build error using aliased imports or standard `Clock.System` calls did not resolve the issue in the CI environment. The compiler still reports `Unresolved reference 'System'` in several `commonMain` files.
-
-## Research Findings
-
-The error `Unresolved reference 'System'` when using `Clock.System` suggests that the `Clock` symbol is being resolved to a class/interface that does not have a `System` property, or the property itself is ambiguous to the Kotlin Native compiler. To fix this robustly across all platforms, I will use the fully qualified name `kotlinx.datetime.Clock.System` for every wall-clock time call.
+The iOS build is failing during the linking stage with a "Function not found" error related to the `androidx.navigation` library. This is a known issue when using experimental or alpha versions of libraries in Kotlin Multiplatform, where the Kotlin/Native compiler's cache becomes inconsistent or unable to resolve specific symbols.
 
 ## Proposed Changes
 
-### [Shared Presentation]
+### [Gradle Configuration]
 
-I will replace all ambiguous `Clock.System` or `System.currentTimeMillis()` calls with explicit, fully qualified Kotlin Multiplatform calls.
+#### [MODIFY] [gradle.properties](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle.properties)
 
-#### [MODIFY] [ScheduleWorkOrderScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/admin/ScheduleWorkOrderScreen.kt)
-- Replace all occurrences of `Clock.System.now()` with `kotlinx.datetime.Clock.System.now()`.
-- Ensure imports are clean and don't clash.
-
-#### [MODIFY] [CompleteVisitScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/CompleteVisitScreen.kt)
-- Replace `Clock.System.todayIn(...)` with `kotlinx.datetime.Clock.System.todayIn(...)`.
-
-#### [MODIFY] [WorkOrderComponents.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderComponents.kt)
-- Replace all `Clock.System.now()` with `kotlinx.datetime.Clock.System.now()`.
-
-#### [MODIFY] [WorkOrderListScreen.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/dashboard/WorkOrderListScreen.kt)
-- Replace all `Clock.System.now()` and `Clock.System.todayIn()` with their fully qualified counterparts.
-
-#### [MODIFY] [WorkOrder.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/domain/model/WorkOrder.kt)
-- Check and fix any time-related calls.
+- Add `kotlin.native.cacheKind=none`.
+- This disables the Kotlin/Native compiler cache for external libraries. While this may slightly increase build times on CI, it resolves symbol resolution issues between pre-compiled KMP libraries (like `androidx.navigation`) and your local source code.
 
 ## Verification Plan
 
 ### Automated Tests
-- **Android**: Run `./gradlew :androidApp:assembleDebug` to verify local consistency.
-- **iOS**: I will attempt to run `./gradlew :shared:linkDebugFrameworkIosArm64` if the environment allows, otherwise I will rely on the user to push and check CI, but I will double-check every single line of code first.
+- Run `./gradlew clean` to ensure no stale build artifacts remain.
+- Run `./gradlew :shared:linkDebugFrameworkIosArm64 --stacktrace`.
+- If the build passes, it confirms that the cache was indeed the cause of the linking error.
 
 ### Manual Verification
-- Verify that no `java.lang.System` imports exist in `commonMain`.
-- Verify that no JVM-specific time APIs are used.
+- None required as this is a build-system level fix.

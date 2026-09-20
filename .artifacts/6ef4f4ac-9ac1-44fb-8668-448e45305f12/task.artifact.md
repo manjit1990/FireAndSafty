@@ -1,8 +1,4 @@
-- [ ] `[/]` Fix all `Clock.System` references in `commonMain`
-    - [ ] `[/]` Update `ScheduleWorkOrderScreen.kt` with fully qualified names
-    - [ ] `[/]` Update `CompleteVisitScreen.kt` with fully qualified names
-    - [ ] `[/]` Update `WorkOrderComponents.kt` with fully qualified names
-    - [ ] `[/]` Update `WorkOrderListScreen.kt` with fully qualified names
-    - [ ] `[/]` Update `WorkOrder.kt` with fully qualified names
-- [ ] `[ ]` Verify Android build
-- [ ] `[ ]` Update walkthrough
+- [x] Disable Kotlin/Native compiler cache in `gradle.properties`
+- [x] Run Gradle clean task
+- [x] Run iOS linking task `:shared:linkDebugFrameworkIosArm64`
+- [x] Create walkthrough

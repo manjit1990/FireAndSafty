@@ -124,7 +124,7 @@ fun MainNavigation(
             "schedule_work_order/{orderId}",
             arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val orderId = backStackEntry.savedStateHandle.get<String>("orderId") ?: ""
             ScheduleWorkOrderScreen(
                 orderId = orderId,
                 onBackClick = { navController.popBackStack() },
@@ -135,7 +135,7 @@ fun MainNavigation(
             "work_order_details/{orderId}",
             arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val orderId = backStackEntry.arguments?.getString("orderId")
+            val orderId = backStackEntry.savedStateHandle.get<String>("orderId")
             val viewModel: WorkOrderViewModel = koinViewModel()
             val workOrders by viewModel.workOrders.collectAsState()
             val order = workOrders.find { it.id == orderId }
@@ -156,7 +156,7 @@ fun MainNavigation(
             "complete_visit/{orderId}",
             arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val orderId = backStackEntry.savedStateHandle.get<String>("orderId") ?: ""
             CompleteVisitScreen(
                 orderId = orderId,
                 onBackClick = { navController.popBackStack() },
@@ -171,7 +171,7 @@ fun MainNavigation(
             "admin_work_order_details/{orderId}",
             arguments = listOf(navArgument("orderId") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val orderId = backStackEntry.savedStateHandle.get<String>("orderId") ?: ""
             AdminWorkOrderDetailsScreen(
                 orderId = orderId,
                 onBackClick = { navController.popBackStack() },
@@ -182,7 +182,7 @@ fun MainNavigation(
             "inspection_form/{formType}",
             arguments = listOf(navArgument("formType") { type = androidx.navigation.NavType.StringType })
         ) { backStackEntry ->
-            val formType = backStackEntry.arguments?.getString("formType") ?: "inspection"
+            val formType = backStackEntry.savedStateHandle.get<String>("formType") ?: "inspection"
             InspectionFormScreen(
                 formType = formType,
                 onBackClick = { navController.popBackStack() },

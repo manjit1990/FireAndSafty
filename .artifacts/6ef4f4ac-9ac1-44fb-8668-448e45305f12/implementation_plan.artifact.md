@@ -1,22 +1,21 @@
-# Fix iOS Linking Error: "Function getBackStackEntry is not found"
+# Fix iOS Build Error: Unresolved reference 'getString'
 
-The iOS build is failing during the linking stage with a "Function not found" error related to the `androidx.navigation` library. This is a known issue when using experimental or alpha versions of libraries in Kotlin Multiplatform, where the Kotlin/Native compiler's cache becomes inconsistent or unable to resolve specific symbols.
+The iOS build is failing with `Unresolved reference 'getString'` in `MainApp.kt`. This is likely because the `getString` extension function for `Bundle` is not correctly resolved in the current Kotlin Native environment with the updated Navigation library.
 
 ## Proposed Changes
 
-### [Gradle Configuration]
+### [Shared Presentation]
 
-#### [MODIFY] [gradle.properties](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle.properties)
+#### [MODIFY] [MainApp.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/presentation/MainApp.kt)
 
-- Add `kotlin.native.cacheKind=none`.
-- This disables the Kotlin/Native compiler cache for external libraries. While this may slightly increase build times on CI, it resolves symbol resolution issues between pre-compiled KMP libraries (like `androidx.navigation`) and your local source code.
+- I will replace the usage of `backStackEntry.arguments?.getString("key")` with `backStackEntry.savedStateHandle.get<String>("key")`.
+- `savedStateHandle` is the modern and more robust way to access navigation arguments in Jetpack Navigation, especially in a Kotlin Multiplatform context, as it avoids direct dependency on the platform-specific `Bundle` implementations for simple type retrieval.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `./gradlew clean` to ensure no stale build artifacts remain.
-- Run `./gradlew :shared:linkDebugFrameworkIosArm64 --stacktrace`.
-- If the build passes, it confirms that the cache was indeed the cause of the linking error.
+- Run `./gradlew :shared:compileKotlinIosArm64` to verify the fix.
+- Run `./gradlew :androidApp:assembleDebug` to ensure no regressions on Android.
 
 ### Manual Verification
-- None required as this is a build-system level fix.
+- Verify that navigation between screens (e.g., clicking on a work order to see details) still works correctly and the IDs are passed as expected.

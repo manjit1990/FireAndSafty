@@ -10,8 +10,8 @@ import org.koin.dsl.module
 import kotlin.experimental.ExperimentalObjCName
 import kotlin.native.ObjCName
 
-@ObjCName("initKoinIos")
-fun initKoinIos() {
+@ObjCName("startKoinIos")
+fun startKoinIos() {
     initKoin {
         modules(module {
             single { DriverFactory() }

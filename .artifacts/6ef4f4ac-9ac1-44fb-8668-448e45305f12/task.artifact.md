@@ -1,5 +1,6 @@
-- [x] Fix Koin Interop for iOS
-    - [x] Update `Koin_ios.kt` with explicit Obj-C naming
-    - [x] Verify build with `:shared:linkDebugFrameworkIosArm64`
-- [x] Final verification
+- [x] Fix Koin Interop with Exact Naming and Swift compatibility
+    - [x] Rename function to `startKoinIos` to avoid Swift `init` keyword conflicts
+    - [x] Apply `@ObjCName` in `Koin_ios.kt`
+    - [x] Update `iOSApp.swift` to use `startKoinIos()`
+    - [x] Verify iOS framework build
 - [x] Create walkthrough

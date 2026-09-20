@@ -1,4 +1,7 @@
-- [x] Disable Kotlin/Native compiler cache in `gradle.properties`
-- [x] Run Gradle clean task
-- [x] Run iOS linking task `:shared:linkDebugFrameworkIosArm64`
+- [x] Fix Koin interop naming
+    - [x] Rename `KoinIos.kt` to `Koin_ios.kt`
+    - [x] Update `iOSApp.swift`
+- [x] Verify builds
+    - [x] Run `:shared:linkDebugFrameworkIosArm64`
+    - [x] Run `:androidApp:assembleDebug`
 - [x] Create walkthrough

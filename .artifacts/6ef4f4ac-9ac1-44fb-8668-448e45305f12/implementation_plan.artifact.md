@@ -1,17 +1,31 @@
-# Fix Koin Interop: "type 'Koin_iosKt' has no member 'initKoinIos'"
+# Fix Koin Interop for iOS framework
 
-The iOS build is failing because Swift sees the `Koin_iosKt` class but cannot find the `initKoinIos` member. This is likely due to the function being wrapped inside an `object` in the previous fix, which changed the generated Swift API.
+The goal is to ensure `initKoinIos()` is correctly exposed as a static member of `Koin_iosKt` in Swift, resolving the Xcode error `type 'Koin_iosKt' has no member 'initKoinIos'`.
+
+## Research Findings
+
+1.  **File Location**: `shared/src/iosMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt`
+2.  **Package**: `com.yoga.firesafety.shared.config`
+3.  **Current Status**: The Kotlin framework builds, but Swift cannot see the member. This usually happens if the function signature or naming conflicts with Swift's internal rules (like functions starting with `init` being treated as initializers).
 
 ## Proposed Changes
 
 ### [Shared Module]
 
-#### [MODIFY] [Koin_ios.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt)
-- I will move `initKoinIos` out of the `KoinIOS` object and make it a **top-level function**.
-- I will ensure it returns `Unit` explicitly to avoid any issues with exporting `KoinApplication`.
-- I will keep the filename as `Koin_ios.kt` so that the generated Swift class remains `Koin_iosKt`.
+#### [MODIFY] [Koin_ios.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/iosMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt)
+
+- I will add `@file:ObjCName` to ensure the class name is explicitly `Koin_iosKt`.
+- I will add `@ObjCName` to the function to ensure it is exported exactly as `initKoinIos` and not mangled or treated as a Swift initializer.
+- I will ensure the return type is explicitly `Unit`.
 
 ```kotlin
+@file:OptIn(kotlin.experimental.ExperimentalObjCName::class)
+package com.yoga.firesafety.shared.config
+
+import kotlin.experimental.ExperimentalObjCName
+import kotlin.native.ObjCName
+
+@ObjCName("initKoinIos")
 fun initKoinIos() {
     initKoin {
         modules(module {
@@ -23,17 +37,12 @@ fun initKoinIos() {
 }
 ```
 
-### [iOS Application]
-
-#### [MODIFY] [iOSApp.swift](file:///C:/Users/yoga/Desktop/New/FireAndSafty/iosApp/iosApp/iOSApp.swift)
-- I will update the call to use the top-level bridge: `Koin_iosKt.initKoinIos()`.
-
 ## Verification Plan
 
 ### Automated Tests
 - Run `./gradlew :shared:linkDebugFrameworkIosArm64`.
-- If successful, this confirms the framework with the correct Swift-visible symbols has been generated.
+- This confirms that the Kotlin code compiles and the framework can be linked.
 
 ### Manual Verification
-- Rebuild the iOS project in Xcode (simulated by CI).
-- The error `type 'Koin_iosKt' has no member 'initKoinIos'` should be resolved.
+- Once pushed, the Xcode build should now find the `initKoinIos` member on `Koin_iosKt`.
+- If the error persists, I will check if the package name needs to be part of the Swift call (e.g. `Shared.ConfigKoin_iosKt.initKoinIos()`), though the error message suggests `Koin_iosKt` itself is found.

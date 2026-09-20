@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalObjCName::class)
 package com.yoga.firesafety.shared.config
 
 import com.yoga.firesafety.shared.data.local.DriverFactory
@@ -6,7 +7,10 @@ import com.yoga.firesafety.shared.util.IosDeviceIdProvider
 import com.yoga.firesafety.shared.util.NotificationService
 import com.yoga.firesafety.shared.util.IosNotificationService
 import org.koin.dsl.module
+import kotlin.experimental.ExperimentalObjCName
+import kotlin.native.ObjCName
 
+@ObjCName("initKoinIos")
 fun initKoinIos() {
     initKoin {
         modules(module {

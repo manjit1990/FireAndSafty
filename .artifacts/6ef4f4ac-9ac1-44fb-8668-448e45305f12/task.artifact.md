@@ -1,5 +1,5 @@
-- [x] Restore `initKoinIos` as a top-level function
-    - [x] Update `Koin_ios.kt`
-    - [x] Update `iOSApp.swift`
-- [x] Run `:shared:linkDebugFrameworkIosArm64`
+- [x] Fix Koin Interop for iOS
+    - [x] Update `Koin_ios.kt` with explicit Obj-C naming
+    - [x] Verify build with `:shared:linkDebugFrameworkIosArm64`
+- [x] Final verification
 - [x] Create walkthrough

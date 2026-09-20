@@ -1,27 +1,39 @@
-# Fix Swift Interop for Koin Initialization
+# Fix Koin Interop: "type 'Koin_iosKt' has no member 'initKoinIos'"
 
-The goal is to resolve the Swift compilation error `cannot find 'Koin_iosKt' in scope` by ensuring the Kotlin file naming and Swift code align correctly for framework generation.
+The iOS build is failing because Swift sees the `Koin_iosKt` class but cannot find the `initKoinIos` member. This is likely due to the function being wrapped inside an `object` in the previous fix, which changed the generated Swift API.
 
 ## Proposed Changes
 
-### [Shared Presentation]
+### [Shared Module]
 
-#### [MODIFY] [Koin_ios.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/iosMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt)
-- I will rename the current `KoinIos.kt` to `Koin_ios.kt`.
-- In Kotlin Multiplatform, a file named `Koin_ios.kt` will generate a Swift class named `Koin_iosKt`. This matches the naming convention that the user is expecting in their Swift code.
+#### [MODIFY] [Koin_ios.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/commonMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt)
+- I will move `initKoinIos` out of the `KoinIOS` object and make it a **top-level function**.
+- I will ensure it returns `Unit` explicitly to avoid any issues with exporting `KoinApplication`.
+- I will keep the filename as `Koin_ios.kt` so that the generated Swift class remains `Koin_iosKt`.
+
+```kotlin
+fun initKoinIos() {
+    initKoin {
+        modules(module {
+            single { DriverFactory() }
+            single<DeviceIdProvider> { IosDeviceIdProvider() }
+            single<NotificationService> { IosNotificationService() }
+        })
+    }
+}
+```
 
 ### [iOS Application]
 
 #### [MODIFY] [iOSApp.swift](file:///C:/Users/yoga/Desktop/New/FireAndSafty/iosApp/iosApp/iOSApp.swift)
-- Ensure the Swift code explicitly calls `Koin_iosKt.initKoinIos()`.
-- This will resolve the "cannot find" error as the generated framework will now expose the exact symbol.
+- I will update the call to use the top-level bridge: `Koin_iosKt.initKoinIos()`.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `./gradlew :shared:linkDebugFrameworkIosArm64` to verify that the framework is built successfully with the new naming.
-- Run `./gradlew :androidApp:assembleDebug` to ensure Android compatibility.
+- Run `./gradlew :shared:linkDebugFrameworkIosArm64`.
+- If successful, this confirms the framework with the correct Swift-visible symbols has been generated.
 
 ### Manual Verification
-- Once pushed to CI, the iOS Swift compilation should now pass.
-- Verify that the "More" screen and other features still work correctly on Android.
+- Rebuild the iOS project in Xcode (simulated by CI).
+- The error `type 'Koin_iosKt' has no member 'initKoinIos'` should be resolved.

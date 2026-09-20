@@ -7,8 +7,8 @@ import com.yoga.firesafety.shared.util.NotificationService
 import com.yoga.firesafety.shared.util.IosNotificationService
 import org.koin.dsl.module
 
-object KoinIOS {
-    fun initialize() = initKoin {
+fun initKoinIos() {
+    initKoin {
         modules(module {
             single { DriverFactory() }
             single<DeviceIdProvider> { IosDeviceIdProvider() }

@@ -1,7 +1,5 @@
-- [x] Fix Koin interop naming
-    - [x] Rename `KoinIos.kt` to `Koin_ios.kt`
+- [x] Restore `initKoinIos` as a top-level function
+    - [x] Update `Koin_ios.kt`
     - [x] Update `iOSApp.swift`
-- [x] Verify builds
-    - [x] Run `:shared:linkDebugFrameworkIosArm64`
-    - [x] Run `:androidApp:assembleDebug`
+- [x] Run `:shared:linkDebugFrameworkIosArm64`
 - [x] Create walkthrough

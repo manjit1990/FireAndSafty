@@ -141,4 +141,19 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+    
+    modules {
+        module("org.jetbrains.androidx.savedstate:savedstate") {
+            replacedBy("androidx.savedstate:savedstate", "Use official androidx KMP artifacts")
+        }
+        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel") {
+            replacedBy("androidx.lifecycle:lifecycle-viewmodel", "Use official androidx KMP artifacts")
+        }
+        module("org.jetbrains.androidx.lifecycle:lifecycle-runtime") {
+            replacedBy("androidx.lifecycle:lifecycle-runtime", "Use official androidx KMP artifacts")
+        }
+        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate") {
+            replacedBy("androidx.lifecycle:lifecycle-viewmodel-savedstate", "Use official androidx KMP artifacts")
+        }
+    }
 }

@@ -56,10 +56,16 @@ jobs:
           CODE_SIGN_IDENTITY="" \
           build
 
+    - name: Package as IPA
+      run: |
+        mkdir -p Payload
+        cp -r build-output/Build/Products/Debug-iphoneos/*.app Payload/
+        zip -r iosApp.ipa Payload
+
     - name: Upload iOS Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ios-app-debug
         path: |
-          build-output/Build/Products/Debug-iphoneos/*.app
+          iosApp.ipa
           shared/build/cocoapods/framework/Shared.framework

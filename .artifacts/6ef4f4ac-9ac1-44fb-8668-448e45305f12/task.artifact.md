@@ -1,6 +1,9 @@
-- [x] Update CI Workflow for CocoaPods
-    - [x] Add CocoaPods installation and `pod install` steps
+- [x] Switch iOS Framework to CocoaPods
+- [x] Fix CI Workflow for CocoaPods
+    - [x] Add CocoaPods installation
+    - [x] Add `generateDummyFramework` before `pod install`
+    - [x] Add `pod install` step
     - [x] Update Gradle task to `:shared:linkPodDebugFrameworkIosArm64`
     - [x] Update `xcodebuild` to use `-workspace`
-- [x] Final verification of Gradle files
+- [x] Verify Gradle Sync locally
 - [x] Create walkthrough

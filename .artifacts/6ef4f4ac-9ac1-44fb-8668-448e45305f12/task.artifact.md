@@ -1,6 +1,6 @@
-- [x] Fix Koin Interop with Exact Naming and Swift compatibility
-    - [x] Rename function to `startKoinIos` to avoid Swift `init` keyword conflicts
-    - [x] Apply `@ObjCName` in `Koin_ios.kt`
-    - [x] Update `iOSApp.swift` to use `startKoinIos()`
-    - [x] Verify iOS framework build
+- [x] Switch iOS Framework to CocoaPods
+    - [x] Add `native.cocoapods` plugin to `shared/build.gradle.kts`
+    - [x] Configure `cocoapods` block with Firebase dependencies
+    - [x] Remove manual framework generation loop
+- [x] Verify Gradle Sync
 - [x] Create walkthrough

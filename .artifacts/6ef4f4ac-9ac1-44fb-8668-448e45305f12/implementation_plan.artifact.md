@@ -1,41 +1,39 @@
-# Fix Koin Interop: Explicitly Exporting `initKoinIos` to Swift
+# iOS Build Fix: Automatic Firebase Linking via CocoaPods
 
-The goal is to resolve the Xcode error `type 'Koin_iosKt' has no member 'initKoinIos'` by ensuring the Kotlin symbol is exported with the exact name and visibility expected by the Swift compiler.
-
-## Research Findings
-
-1.  **Symbol Mismatch**: Swift recognizes `Koin_iosKt` as a type, but doesn't see `initKoinIos` as a member. This happens when the Kotlin compiler mangles the function name (often adding suffixes like `_` or using parts of the package name) or hides it due to naming conflicts (e.g., functions starting with `init` being treated as Swift initializers).
-2.  **Package Flattening**: Kotlin flattens packages in the generated Objective-C header. If multiple files in different packages have similar names, they may be prefixed.
+Since you are working on **Windows**, you cannot manually add packages in Xcode. To fix the iOS build on GitHub CI, we will move the iOS dependency management into Gradle using the **CocoaPods plugin**. This will allow the GitHub runner (which is a Mac) to automatically fetch and link Firebase for you.
 
 ## Proposed Changes
 
 ### [Shared Module]
 
-#### [MODIFY] [Koin_ios.kt](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/src/iosMain/kotlin/com/yoga/firesafety/shared/config/Koin_ios.kt)
+#### [MODIFY] [shared/build.gradle.kts](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/build.gradle.kts)
 
-- I will use `@file:ObjCName` to force the generated class name to be exactly `Koin_iosKt`.
-- I will use `@ObjCName` with `exact = true` on the function to force the name to be exactly `initKoinIos` in the Objective-C/Swift bridge, bypassing any "initializer" detection or mangling.
+- Add the `kotlin("native.cocoapods")` plugin.
+- Add a `cocoapods` configuration block.
+- Define the Firebase pods (`FirebaseCore`, `FirebaseAuth`, `FirebaseFirestore`) directly in Gradle.
+- Remove the manual framework generation loop as the CocoaPods plugin will now handle this.
+- Move `linkerOpts("-lsqlite3")` into the CocoaPods framework configuration.
 
-```kotlin
-@file:OptIn(kotlin.experimental.ExperimentalObjCName::class)
-@file:ObjCName("Koin_iosKt", exact = true)
-package com.yoga.firesafety.shared.config
+### [Build Configuration]
 
-import kotlin.experimental.ExperimentalObjCName
-import kotlin.native.ObjCName
-...
+#### [MODIFY] [gradle/libs.versions.toml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle/libs.versions.toml)
+- Ensure no version conflicts with the new plugin.
 
-@ObjCName("initKoinIos", exact = true)
-fun initKoinIos() {
-    ...
-}
-```
+## User Actions Required
+
+1. **GitHub Push**: Once I apply these changes, you need to push them to GitHub.
+2. **CI/CD Build**: The GitHub Action will now automatically run `pod install` (handled by the Kotlin plugin) and link the Firebase libraries during the build.
+3. **No Xcode Needed**: You don't need to touch Xcode on Windows.
+
+## Open Questions
+> [!IMPORTANT]
+> The `iosApp` project on GitHub might need a small update to use the generated `.xcworkspace` instead of `.xcodeproj` if the CI script is very specific. However, most modern KMP CI templates handle this transition automatically.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `./gradlew :shared:linkDebugFrameworkIosArm64`.
-- If successful, it confirms the framework is compilable.
+- Run Gradle sync in Android Studio. It should pass on Windows (the CocoaPods plugin will be idle but won't error).
+- Monitor the GitHub CI build. The linker errors for `FIRAuth` and `FIRFirestore` should disappear.
 
 ### Manual Verification
-- Once pushed, rebuild the Xcode project. The error `type 'Koin_iosKt' has no member 'initKoinIos'` should be resolved.
+- Verify the Android app still builds and runs correctly.

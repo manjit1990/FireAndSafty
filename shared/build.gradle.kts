@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.sqldelight)
+    kotlin("native.cocoapods")
 }
 
 sqldelight {
@@ -19,14 +20,24 @@ sqldelight {
 }
 
 kotlin {
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+    iosArm64()
+    iosSimulatorArm64()
+
+    cocoapods {
+        summary = "Shared module for Fire Safety Service Management"
+        homepage = "https://github.com/firebase/firebase-ios-sdk"
+        version = "1.0"
+        ios.deploymentTarget = "15.0"
+        
+        framework {
             baseName = "Shared"
             isStatic = true
+            linkerOpts("-lsqlite3")
         }
+
+        pod("FirebaseCore")
+        pod("FirebaseAuth")
+        pod("FirebaseFirestore")
     }
 
 /*

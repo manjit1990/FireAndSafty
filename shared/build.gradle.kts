@@ -91,6 +91,8 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
+            implementation(libs.androidx.lifecycle.viewmodelSavedstate)
+            implementation(libs.androidx.savedstate)
         }
 /*
         val wasmJsMain by getting {

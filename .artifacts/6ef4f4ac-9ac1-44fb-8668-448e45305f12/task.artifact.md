@@ -1,7 +1,5 @@
-- [x] Fix iOS KLIB Resolution
-    - [x] Update `gradle/libs.versions.toml` with explicit savedstate dependencies
-    - [x] Add explicit dependencies to `shared/build.gradle.kts`
-- [x] Verify builds
+- [x] Fix iOS KLIB Resolution (SavedState and Lifecycle)
+    - [x] Update `shared/build.gradle.kts` to add explicit dependencies to `iosMain`
     - [x] Run Gradle Sync
-    - [x] Run `androidApp:assembleDebug`
+    - [x] Run `androidApp:assembleDebug` to verify no regressions
 - [x] Create walkthrough

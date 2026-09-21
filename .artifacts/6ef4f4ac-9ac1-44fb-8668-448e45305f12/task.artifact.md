@@ -1,9 +1,7 @@
-- [x] Switch iOS Framework to CocoaPods
-- [x] Fix CI Workflow for CocoaPods
-    - [x] Add CocoaPods installation
-    - [x] Add `generateDummyFramework` before `pod install`
-    - [x] Add `pod install` step
-    - [x] Update Gradle task to `:shared:linkPodDebugFrameworkIosArm64`
-    - [x] Update `xcodebuild` to use `-workspace`
-- [x] Verify Gradle Sync locally
+- [x] Fix iOS KLIB Resolution
+    - [x] Update `gradle/libs.versions.toml` with explicit savedstate dependencies
+    - [x] Add explicit dependencies to `shared/build.gradle.kts`
+- [x] Verify builds
+    - [x] Run Gradle Sync
+    - [x] Run `androidApp:assembleDebug`
 - [x] Create walkthrough

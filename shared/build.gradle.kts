@@ -110,6 +110,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.lifecycle.viewmodelSavedstate)
+            implementation(libs.androidx.savedstate)
             implementation(libs.androidx.navigation.compose)
             
             implementation(libs.kotlinx.coroutines.core)

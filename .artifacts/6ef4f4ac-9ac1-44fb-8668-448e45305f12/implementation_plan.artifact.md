@@ -1,25 +1,33 @@
-# Fix iOS Build Task Ambiguity and CI Workflow
+# Fix iOS KLIB Resolution for SavedState and Lifecycle
 
-The introduction of the `native.cocoapods` plugin has changed the internal Gradle task names for building the iOS framework. The previous task `:shared:linkDebugFrameworkIosArm64` has been replaced by `:shared:linkPodDebugFrameworkIosArm64`. Additionally, the CI pipeline needs to be updated to support CocoaPods.
+The iOS build on CI is failing because the KLIB resolver cannot find `org.jetbrains.androidx.savedstate:savedstate` and `org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate` during the Firebase cinterop tasks. This typically happens when transitive dependencies are not fully resolved for native targets.
 
 ## Proposed Changes
 
-### [CI/CD Configuration]
+### [Dependency Configuration]
 
-#### [MODIFY] [.github/workflows/ios-build.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/.github/workflows/ios-build.yml)
+#### [MODIFY] [libs.versions.toml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle/libs.versions.toml)
 
-- **Add CocoaPods Setup**: Install CocoaPods on the macOS runner.
-- **Run Pod Install**: Execute `pod install` in the `iosApp` directory to generate the Xcode workspace and link dependencies.
-- **Update Build Task**: Change the Gradle task name from `:shared:linkDebugFrameworkIosArm64` to `:shared:linkPodDebugFrameworkIosArm64`.
-- **Switch to Workspace**: Update the `xcodebuild` command to use `-workspace iosApp.xcworkspace` instead of `-project iosApp.xcodeproj`.
-- **Update Artifact Paths**: Ensure the framework upload path matches the new CocoaPods output structure if necessary.
+- Update `androidx-lifecycle` from `2.11.0-beta01` to `2.11.0` (Stable) to ensure better compatibility.
+- Add `androidx-savedstate = "1.4.0"` version.
+- Add explicit library definitions for:
+    - `androidx-savedstate` (`org.jetbrains.androidx.savedstate:savedstate`)
+    - `androidx-lifecycle-viewmodelSavedstate` (`org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate`)
+
+#### [MODIFY] [shared/build.gradle.kts](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/build.gradle.kts)
+
+- Explicitly add the following to `commonMain.dependencies`:
+    - `implementation(libs.androidx.savedstate)`
+    - `implementation(libs.androidx.lifecycle.viewmodelSavedstate)`
+
+Explicitly declaring these in `commonMain` ensures that the Kotlin Multiplatform resolver downloads and caches the necessary KLIBs for all targets (including iOS), which resolves the "Could not find" errors during the cinterop phase.
 
 ## Verification Plan
 
-### Manual Verification
-- Once the changes are pushed, the GitHub Action will trigger.
-- Monitor the "Build KMP iOS Shared Framework" step to ensure `:shared:linkPodDebugFrameworkIosArm64` passes.
-- Monitor the "Build iOS App (Xcode)" step to ensure it correctly uses the workspace and linked pods.
-
 ### Automated Tests
-- Since I am on Windows and cannot run the iOS linker or CocoaPods commands locally, verification depends on the CI results. I have verified that the Gradle configuration is correct for CocoaPods usage.
+- Run Gradle Sync to ensure the new dependencies are resolved correctly on Windows.
+- Since I cannot run the iOS linker locally, the primary verification will be the GitHub CI build.
+- The command to run on CI remains: `./gradlew :shared:linkPodDebugFrameworkIosArm64 --stacktrace`.
+
+### Manual Verification
+- Verify that the Android app still builds and runs correctly (`./gradlew :androidApp:assembleDebug`).

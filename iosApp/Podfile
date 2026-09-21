@@ -11,4 +11,21 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
   end
+
+  # SQLDelight's native driver references Apple's libsqlite3. Because the
+  # shared KMP framework is static, explicitly pass the system library to the
+  # final application target as well.
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.user_project.native_targets.each do |target|
+      next unless target.name == 'iosApp'
+
+      target.build_configurations.each do |config|
+        flags = config.build_settings['OTHER_LDFLAGS']
+        flags = ['$(inherited)'] if flags.nil?
+        flags = [flags] if flags.is_a?(String)
+        flags << '-lsqlite3' unless flags.include?('-lsqlite3')
+        config.build_settings['OTHER_LDFLAGS'] = flags
+      end
+    end
+  end
 end

@@ -1,6 +1,6 @@
-- [x] Switch iOS Framework to CocoaPods
-    - [x] Add `native.cocoapods` plugin to `shared/build.gradle.kts`
-    - [x] Configure `cocoapods` block with Firebase dependencies
-    - [x] Remove manual framework generation loop
-- [x] Verify Gradle Sync
+- [x] Update CI Workflow for CocoaPods
+    - [x] Add CocoaPods installation and `pod install` steps
+    - [x] Update Gradle task to `:shared:linkPodDebugFrameworkIosArm64`
+    - [x] Update `xcodebuild` to use `-workspace`
+- [x] Final verification of Gradle files
 - [x] Create walkthrough

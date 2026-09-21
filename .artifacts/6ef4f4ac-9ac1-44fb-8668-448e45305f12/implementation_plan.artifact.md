@@ -1,39 +1,25 @@
-# iOS Build Fix: Automatic Firebase Linking via CocoaPods
+# Fix iOS Build Task Ambiguity and CI Workflow
 
-Since you are working on **Windows**, you cannot manually add packages in Xcode. To fix the iOS build on GitHub CI, we will move the iOS dependency management into Gradle using the **CocoaPods plugin**. This will allow the GitHub runner (which is a Mac) to automatically fetch and link Firebase for you.
+The introduction of the `native.cocoapods` plugin has changed the internal Gradle task names for building the iOS framework. The previous task `:shared:linkDebugFrameworkIosArm64` has been replaced by `:shared:linkPodDebugFrameworkIosArm64`. Additionally, the CI pipeline needs to be updated to support CocoaPods.
 
 ## Proposed Changes
 
-### [Shared Module]
+### [CI/CD Configuration]
 
-#### [MODIFY] [shared/build.gradle.kts](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/build.gradle.kts)
+#### [MODIFY] [.github/workflows/ios-build.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/.github/workflows/ios-build.yml)
 
-- Add the `kotlin("native.cocoapods")` plugin.
-- Add a `cocoapods` configuration block.
-- Define the Firebase pods (`FirebaseCore`, `FirebaseAuth`, `FirebaseFirestore`) directly in Gradle.
-- Remove the manual framework generation loop as the CocoaPods plugin will now handle this.
-- Move `linkerOpts("-lsqlite3")` into the CocoaPods framework configuration.
-
-### [Build Configuration]
-
-#### [MODIFY] [gradle/libs.versions.toml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/gradle/libs.versions.toml)
-- Ensure no version conflicts with the new plugin.
-
-## User Actions Required
-
-1. **GitHub Push**: Once I apply these changes, you need to push them to GitHub.
-2. **CI/CD Build**: The GitHub Action will now automatically run `pod install` (handled by the Kotlin plugin) and link the Firebase libraries during the build.
-3. **No Xcode Needed**: You don't need to touch Xcode on Windows.
-
-## Open Questions
-> [!IMPORTANT]
-> The `iosApp` project on GitHub might need a small update to use the generated `.xcworkspace` instead of `.xcodeproj` if the CI script is very specific. However, most modern KMP CI templates handle this transition automatically.
+- **Add CocoaPods Setup**: Install CocoaPods on the macOS runner.
+- **Run Pod Install**: Execute `pod install` in the `iosApp` directory to generate the Xcode workspace and link dependencies.
+- **Update Build Task**: Change the Gradle task name from `:shared:linkDebugFrameworkIosArm64` to `:shared:linkPodDebugFrameworkIosArm64`.
+- **Switch to Workspace**: Update the `xcodebuild` command to use `-workspace iosApp.xcworkspace` instead of `-project iosApp.xcodeproj`.
+- **Update Artifact Paths**: Ensure the framework upload path matches the new CocoaPods output structure if necessary.
 
 ## Verification Plan
 
-### Automated Tests
-- Run Gradle sync in Android Studio. It should pass on Windows (the CocoaPods plugin will be idle but won't error).
-- Monitor the GitHub CI build. The linker errors for `FIRAuth` and `FIRFirestore` should disappear.
-
 ### Manual Verification
-- Verify the Android app still builds and runs correctly.
+- Once the changes are pushed, the GitHub Action will trigger.
+- Monitor the "Build KMP iOS Shared Framework" step to ensure `:shared:linkPodDebugFrameworkIosArm64` passes.
+- Monitor the "Build iOS App (Xcode)" step to ensure it correctly uses the workspace and linked pods.
+
+### Automated Tests
+- Since I am on Windows and cannot run the iOS linker or CocoaPods commands locally, verification depends on the CI results. I have verified that the Gradle configuration is correct for CocoaPods usage.

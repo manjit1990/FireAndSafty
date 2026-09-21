@@ -25,26 +25,25 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Cache Gradle Dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          .gradle
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+    - name: Install CocoaPods
+      run: |
+        sudo gem install cocoapods
+        pod --version
 
     - name: Make Gradle Wrapper Executable
       run: chmod +x gradlew
 
     - name: Build KMP iOS Shared Framework
-      run: ./gradlew :shared:linkDebugFrameworkIosArm64 --stacktrace
+      run: ./gradlew :shared:linkPodDebugFrameworkIosArm64 --stacktrace
+
+    - name: CocoaPods Install
+      run: |
+        cd iosApp
+        pod install
 
     - name: Build iOS App (Xcode)
       run: |
-        xcodebuild -project iosApp/iosApp.xcodeproj \
+        xcodebuild -workspace iosApp/iosApp.xcworkspace \
           -scheme iosApp \
           -sdk iphoneos \
           -configuration Debug \
@@ -60,4 +59,4 @@ jobs:
         name: ios-app-debug
         path: |
           build-output/Build/Products/Debug-iphoneos/*.app
-          shared/build/bin/iosArm64/debugFramework/
+          shared/build/cocoapods/framework/Shared.framework

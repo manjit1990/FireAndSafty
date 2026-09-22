@@ -23,6 +23,9 @@ jobs:
         distribution: 'zulu'
         cache: gradle
 
+    - name: Make Gradle Wrapper Executable
+      run: chmod +x gradlew
+
     - name: Verify Java
       run: |
         java -version
@@ -35,9 +38,6 @@ jobs:
       run: |
         sudo gem install cocoapods
         pod --version
-
-    - name: Make Gradle Wrapper Executable
-      run: chmod +x gradlew
 
     - name: Generate Dummy Framework for CocoaPods
       run: ./gradlew :shared:generateDummyFramework

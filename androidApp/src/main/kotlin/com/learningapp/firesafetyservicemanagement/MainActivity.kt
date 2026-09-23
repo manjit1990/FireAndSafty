@@ -14,6 +14,7 @@ import com.yoga.firesafety.shared.presentation.theme.FireSafetyTheme
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
     private val viewModel: MainViewModel by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {

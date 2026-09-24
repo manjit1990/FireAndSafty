@@ -9,6 +9,7 @@ plugins {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
     }
 }
 dependencies {

@@ -23,6 +23,11 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    sourceSets.all {
+        languageSettings.optIn("kotlin.time.ExperimentalTime")
+        languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+    }
+
     cocoapods {
         summary = "Shared module for Fire Safety Service Management"
         homepage = "https://github.com/firebase/firebase-ios-sdk"
@@ -154,6 +159,12 @@ dependencies {
         }
         module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate") {
             replacedBy("androidx.lifecycle:lifecycle-viewmodel-savedstate", "Use official androidx KMP artifacts")
+        }
+        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose") {
+            replacedBy("androidx.lifecycle:lifecycle-viewmodel-compose", "Use official androidx KMP artifacts")
+        }
+        module("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose") {
+            replacedBy("androidx.lifecycle:lifecycle-runtime-compose", "Use official androidx KMP artifacts")
         }
     }
 }

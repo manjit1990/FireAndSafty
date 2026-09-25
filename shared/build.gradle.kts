@@ -62,17 +62,11 @@ kotlin {
     }
 */
 
-    androidTarget {
+    androidLibrary {
         namespace = "com.learningapp.firesafetyservicemanagement.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_17
-        }
-        androidResources {
-            enable = true
-        }
         withHostTest {
             isIncludeAndroidResources = true
         }

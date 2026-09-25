@@ -62,7 +62,7 @@ kotlin {
     }
 */
 
-    android {
+    androidTarget {
         namespace = "com.learningapp.firesafetyservicemanagement.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()

@@ -33,7 +33,7 @@ kotlin {
         homepage = "https://github.com/firebase/firebase-ios-sdk"
         version = "1.0"
         ios.deploymentTarget = "15.0"
-        
+
         framework {
             baseName = "Shared"
             isStatic = true
@@ -53,7 +53,6 @@ kotlin {
             commonWebpackConfig {
                 devServer = (devServer ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug in browser
                         add(projectDir.path)
                     }
                 }
@@ -62,28 +61,23 @@ kotlin {
         binaries.executable()
     }
 */
-    
+
     android {
-       namespace = "com.learningapp.firesafetyservicemanagement.shared"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-    
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_17
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
-       withDeviceTestBuilder {
-           sourceSetTreeName = "test"
-       }.configure {
-           instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-       }
+        namespace = "com.learningapp.firesafetyservicemanagement.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+        androidResources {
+            enable = true
+        }
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -120,7 +114,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelSavedstate)
             implementation(libs.androidx.savedstate)
             implementation(libs.androidx.navigation.compose)
-            
+
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
@@ -146,7 +140,7 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
-    
+
     modules {
         module("org.jetbrains.androidx.savedstate:savedstate") {
             replacedBy("androidx.savedstate:savedstate", "Use official androidx KMP artifacts")

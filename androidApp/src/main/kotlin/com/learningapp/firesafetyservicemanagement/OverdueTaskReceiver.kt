@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.SystemClock
 import com.yoga.firesafety.shared.domain.model.checkIfOverdue
 import com.yoga.firesafety.shared.domain.model.checkIfCompletionOverdue
@@ -36,33 +37,88 @@ class OverdueTaskReceiver : BroadcastReceiver(), KoinComponent {
                 if (startOverdueCount > 0 || completionOverdueCount > 0) {
                     notificationService.showOverdueNotification(startOverdueCount, completionOverdueCount)
                 }
-
-                // Reschedule alarm for 5 minutes later
-                scheduleNextAlarm(context)
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                // Reschedule alarm for 5 minutes later safely
+                scheduleNextAlarm(context)
             }
         }
     }
 
     private fun scheduleNextAlarm(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, OverdueTaskReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 
-            0, 
-            intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+            val intent = Intent(context, OverdueTaskReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, 
+                0, 
+                intent, 
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
-        // 5 minutes in milliseconds
-        val interval = 5 * 60 * 1000L
-        val triggerAt = SystemClock.elapsedRealtime() + interval
+            val interval = 5 * 60 * 1000L
+            val triggerAt = SystemClock.elapsedRealtime() + interval
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            triggerAt,
-            pendingIntent
-        )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerAt,
+                        pendingIntent
+                    )
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerAt,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.set(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerAt,
+                        pendingIntent
+                    )
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerAt,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.set(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerAt,
+                    pendingIntent
+                )
+            }
+        } catch (_: SecurityException) {
+            // Fallback to inexact alarm if exact alarm permission is denied
+            try {
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+                val intent = Intent(context, OverdueTaskReceiver::class.java)
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                val triggerAt = SystemClock.elapsedRealtime() + (5 * 60 * 1000L)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerAt,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.set(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerAt,
+                        pendingIntent
+                    )
+                }
+            } catch (_: Exception) {
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

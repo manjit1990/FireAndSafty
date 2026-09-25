@@ -72,6 +72,9 @@ kotlin {
         }
     }
 
+
+
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -133,25 +136,16 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
-
-    modules {
-        module("org.jetbrains.androidx.savedstate:savedstate") {
-            replacedBy("androidx.savedstate:savedstate", "Use official androidx KMP artifacts")
-        }
-        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel") {
-            replacedBy("androidx.lifecycle:lifecycle-viewmodel", "Use official androidx KMP artifacts")
-        }
-        module("org.jetbrains.androidx.lifecycle:lifecycle-runtime") {
-            replacedBy("androidx.lifecycle:lifecycle-runtime", "Use official androidx KMP artifacts")
-        }
-        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate") {
-            replacedBy("androidx.lifecycle:lifecycle-viewmodel-savedstate", "Use official androidx KMP artifacts")
-        }
-        module("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose") {
-            replacedBy("androidx.lifecycle:lifecycle-viewmodel-compose", "Use official androidx KMP artifacts")
-        }
-        module("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose") {
-            replacedBy("androidx.lifecycle:lifecycle-runtime-compose", "Use official androidx KMP artifacts")
-        }
-    }
 }
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "firesafetyservicemanagement.shared.generated.resources"
+}
+
+tasks.register("copyComposeResourcesToAndroidAssets", Copy::class.java) {
+    from(layout.projectDirectory.dir("src/commonMain/composeResources"))
+    into(layout.buildDirectory.dir("generated/assets/composeResources/composeResources/firesafetyservicemanagement.shared.generated.resources"))
+}
+
+

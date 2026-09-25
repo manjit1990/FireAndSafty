@@ -64,4 +64,15 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets.getByName("main") {
+        assets.srcDirs(
+            project(":shared").file("build/generated/assets/composeResources")
+        )
+    }
+
 }
+
+tasks.matching { it.name.contains("Assets") || it.name.contains("package") || it.name.contains("Merge") }.configureEach {
+    dependsOn(project(":shared").tasks.named("copyComposeResourcesToAndroidAssets"))
+}
+

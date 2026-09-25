@@ -1,4 +1,4 @@
-name: iOS Simulator Build
+name: iOS Simulator Build for Appetize
 
 on:
   push:
@@ -11,13 +11,13 @@ on:
 
 jobs:
   build-ios-simulator:
-    name: Build KMP iOS Simulator App
+    name: Build iOS Simulator .app for Appetize
     runs-on: macos-latest
 
     steps:
 
       # =====================================================
-      # 1. Checkout Repository
+      # 1. Checkout
       # =====================================================
 
       - name: Checkout Repository
@@ -25,7 +25,7 @@ jobs:
 
 
       # =====================================================
-      # 2. Setup Java JDK 21
+      # 2. Java
       # =====================================================
 
       - name: Set up Java JDK 21
@@ -37,19 +37,19 @@ jobs:
 
 
       # =====================================================
-      # 3. Gradle Setup
+      # 3. Gradle
       # =====================================================
 
       - name: Make Gradle Wrapper Executable
         run: chmod +x gradlew
 
-      - name: Verify Java
+      - name: Verify Java and Gradle
         run: |
           java -version
           ./gradlew --version
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
 
       # =====================================================
@@ -63,7 +63,7 @@ jobs:
 
 
       # =====================================================
-      # 5. Generate Dummy Framework
+      # 5. Generate KMP Dummy Framework
       # =====================================================
 
       - name: Generate Dummy Framework
@@ -72,47 +72,47 @@ jobs:
 
 
       # =====================================================
-      # 6. Install CocoaPods Dependencies
+      # 6. Install CocoaPods
       # =====================================================
 
       - name: CocoaPods Install
+        working-directory: iosApp
         run: |
-          cd iosApp
-          pod install
+          pod install --repo-update
 
 
       # =====================================================
-      # 7. Detect Xcode Workspace
+      # 7. Find Workspace
       # =====================================================
 
       - name: Detect Xcode Workspace
+        shell: bash
         run: |
           set -e
 
           WORKSPACE=$(find iosApp \
             -name "*.xcworkspace" \
-            -type d | head -n 1)
+            -type d \
+            | head -n 1)
 
           if [ -z "$WORKSPACE" ]; then
             echo "ERROR: No .xcworkspace found."
 
             echo "Available Xcode files:"
-            find iosApp -maxdepth 5 \
+            find iosApp -maxdepth 6 \
               \( -name "*.xcodeproj" -o -name "*.xcworkspace" \)
 
             exit 1
           fi
 
-          echo "===================================="
           echo "Workspace found:"
           echo "$WORKSPACE"
-          echo "===================================="
 
           echo "WORKSPACE_PATH=$WORKSPACE" >> "$GITHUB_ENV"
 
 
       # =====================================================
-      # 8. Show Xcode Schemes
+      # 8. Show Schemes
       # =====================================================
 
       - name: Show Xcode Schemes
@@ -123,7 +123,7 @@ jobs:
 
 
       # =====================================================
-      # 9. Build KMP Framework for iOS Simulator
+      # 9. Build KMP Framework for Simulator
       # =====================================================
 
       - name: Build KMP Simulator Framework
@@ -134,19 +134,26 @@ jobs:
 
 
       # =====================================================
-      # 10. Build iOS Simulator App
+      # 10. Clean Build Directory
+      # =====================================================
+
+      - name: Clean Build Output
+        run: |
+          rm -rf build-output
+          mkdir -p build-output
+
+
+      # =====================================================
+      # 11. Build iOS Simulator .app
       # =====================================================
 
       - name: Build iOS Simulator App
         run: |
           set -e
 
-          rm -rf build-output
-          mkdir -p build-output
-
-          echo "===================================="
-          echo "Building iOS Simulator application..."
-          echo "===================================="
+          echo "=========================================="
+          echo "Building iOS Simulator App"
+          echo "=========================================="
 
           xcodebuild build \
             -workspace "$WORKSPACE_PATH" \
@@ -154,297 +161,220 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -destination "generic/platform=iOS Simulator" \
-            -derivedDataPath build-output \
+            -derivedDataPath "$GITHUB_WORKSPACE/build-output" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
-          echo ""
-          echo "===================================="
-          echo "Simulator build completed."
-          echo "===================================="
+          echo "=========================================="
+          echo "Xcode build completed"
+          echo "=========================================="
 
 
       # =====================================================
-      # 11. Find Simulator APP
+      # 12. Find .app
       # =====================================================
 
-      - name: Find Simulator App
+      - name: Locate Simulator .app
+        shell: bash
         run: |
           set -e
 
-          echo "===================================="
-          echo "Searching for .app..."
-          echo "===================================="
+          echo "Searching for simulator .app..."
 
-          find build-output \
+          APP_PATH=$(find "$GITHUB_WORKSPACE/build-output" \
             -type d \
-            -name "*.app" \
-            -print
-
-          APP_COUNT=$(find build-output \
-            -type d \
-            -name "*.app" \
-            | wc -l \
-            | tr -d ' ')
-
-          echo ""
-          echo "APP COUNT: $APP_COUNT"
-
-          if [ "$APP_COUNT" -eq 0 ]; then
-            echo ""
-            echo "ERROR: No .app bundle was generated."
-            echo ""
-            echo "Build directory:"
-            find build-output -maxdepth 6 -print
-            exit 1
-          fi
-
-
-      # =====================================================
-      # 12. Verify GoogleService-Info.plist
-      # =====================================================
-
-      - name: Verify GoogleService-Info.plist
-        run: |
-          set -e
-
-          APP_PATH=$(find build-output \
-            -type d \
-            -path "*Build/Products/Debug-iphonesimulator/*.app" \
+            -path "*/Build/Products/Debug-iphonesimulator/*.app" \
             | head -n 1)
 
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Simulator .app not found."
-            exit 1
-          fi
-
-          echo "===================================="
-          echo "App found:"
-          echo "$APP_PATH"
-          echo "===================================="
-
-          if [ -f "$APP_PATH/GoogleService-Info.plist" ]; then
-
-            echo "GoogleService-Info.plist is already present."
-
-          else
-
-            echo "GoogleService-Info.plist is NOT inside app bundle."
-
-            if [ -f "iosApp/iosApp/GoogleService-Info.plist" ]; then
-
-              cp \
-                "iosApp/iosApp/GoogleService-Info.plist" \
-                "$APP_PATH/"
-
-              echo "GoogleService-Info.plist copied into app bundle."
-
-            else
-
-              echo "WARNING:"
-              echo "Source GoogleService-Info.plist not found."
-
-            fi
-
-          fi
-
-
-      # =====================================================
-      # 13. Inspect APP
-      # =====================================================
-
-      - name: Inspect Simulator App
-        run: |
-          set -e
-
-          APP_PATH=$(find build-output \
-            -type d \
-            -path "*Build/Products/Debug-iphonesimulator/*.app" \
-            | head -n 1)
-
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No simulator .app found."
-            exit 1
-          fi
-
-          echo ""
-          echo "===================================="
-          echo "APP PATH"
-          echo "===================================="
-
-          echo "$APP_PATH"
-
-          echo ""
-          echo "===================================="
-          echo "APP CONTENT"
-          echo "===================================="
-
-          ls -lah "$APP_PATH"
-
-          echo ""
-          echo "===================================="
-          echo "APP BINARY"
-          echo "===================================="
-
-          APP_NAME=$(basename "$APP_PATH" .app)
-
-          if [ -f "$APP_PATH/$APP_NAME" ]; then
-            file "$APP_PATH/$APP_NAME"
-          else
-            echo "WARNING: App executable not found at:"
-            echo "$APP_PATH/$APP_NAME"
-          fi
-
-
-      # =====================================================
-      # 14. Package APP for Appetize
-      # =====================================================
-
-      - name: Package Simulator App
-        run: |
-          set -e
-
-          echo "===================================="
-          echo "Locating simulator .app..."
-          echo "===================================="
-
-          APP_PATH=$(find build-output \
-            -type d \
-            -path "*Build/Products/Debug-iphonesimulator/*.app" \
-            | head -n 1)
-
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No simulator .app found."
+            echo "ERROR: No .app bundle found."
 
             echo ""
-            echo "Available APP files:"
-            find build-output \
+            echo "All .app files:"
+            find "$GITHUB_WORKSPACE/build-output" \
               -type d \
               -name "*.app" \
+              -print
+
+            echo ""
+            echo "Build directory:"
+            find "$GITHUB_WORKSPACE/build-output" \
+              -maxdepth 7 \
               -print
 
             exit 1
           fi
 
-          echo ""
-          echo "===================================="
-          echo "FOUND APP"
-          echo "===================================="
-
+          echo "=========================================="
+          echo "APP FOUND"
+          echo "=========================================="
           echo "$APP_PATH"
 
-
-          # -----------------------------------------------
-          # Clean package directory
-          # -----------------------------------------------
-
-          rm -rf appetize-package
-
-          mkdir -p appetize-package
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
 
 
-          # -----------------------------------------------
-          # Copy .app
-          # -----------------------------------------------
+      # =====================================================
+      # 13. Inspect .app
+      # =====================================================
+
+      - name: Verify Simulator App
+        shell: bash
+        run: |
+          set -e
+
+          echo "=========================================="
+          echo "APP CONTENT"
+          echo "=========================================="
+
+          ls -lah "$APP_PATH"
+
+          APP_NAME=$(basename "$APP_PATH" .app)
 
           echo ""
-          echo "Copying APP..."
+          echo "App name:"
+          echo "$APP_NAME"
+
+          echo ""
+          echo "Checking executable..."
+
+          if [ ! -f "$APP_PATH/$APP_NAME" ]; then
+            echo "ERROR: App executable not found:"
+            echo "$APP_PATH/$APP_NAME"
+            exit 1
+          fi
+
+          echo "Executable found."
+
+          echo ""
+          echo "Binary architecture:"
+          file "$APP_PATH/$APP_NAME"
+
+          echo ""
+          echo "Info.plist:"
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIdentifier" \
+            "$APP_PATH/Info.plist" || true
+
+
+      # =====================================================
+      # 14. Verify Firebase plist
+      # =====================================================
+
+      - name: Verify GoogleService-Info.plist
+        shell: bash
+        run: |
+          set -e
+
+          if [ -f "$APP_PATH/GoogleService-Info.plist" ]; then
+            echo "GoogleService-Info.plist is present inside .app"
+          else
+            echo "WARNING: GoogleService-Info.plist is NOT inside .app"
+
+            if [ -f "iosApp/iosApp/GoogleService-Info.plist" ]; then
+              echo "Copying GoogleService-Info.plist..."
+
+              cp \
+                "iosApp/iosApp/GoogleService-Info.plist" \
+                "$APP_PATH/"
+
+              echo "GoogleService-Info.plist copied."
+            else
+              echo "WARNING: Source GoogleService-Info.plist not found."
+            fi
+          fi
+
+
+      # =====================================================
+      # 15. Prepare Appetize Package
+      # =====================================================
+
+      - name: Prepare Appetize Package
+        shell: bash
+        run: |
+          set -e
+
+          rm -rf appetize-package
+          mkdir -p appetize-package
+
+          echo "Copying .app..."
 
           cp -R "$APP_PATH" appetize-package/
 
-
-          # -----------------------------------------------
-          # Verify copied APP
-          # -----------------------------------------------
-
           echo ""
-          echo "===================================="
-          echo "PACKAGE CONTENT"
-          echo "===================================="
-
+          echo "Package contents:"
           find appetize-package \
-            -maxdepth 2 \
+            -maxdepth 3 \
             -print
 
 
-          # -----------------------------------------------
-          # Create ZIP
-          # -----------------------------------------------
+      # =====================================================
+      # 16. Create ZIP
+      # =====================================================
+
+      - name: Create Appetize ZIP
+        shell: bash
+        run: |
+          set -e
 
           cd appetize-package
 
           APP_NAME=$(basename "$APP_PATH")
 
-          echo ""
-          echo "Creating ZIP:"
+          echo "Creating:"
           echo "$APP_NAME"
 
           zip -r \
             "$GITHUB_WORKSPACE/ios-app-for-appetize.zip" \
             "$APP_NAME"
 
-
-          # -----------------------------------------------
-          # Verify ZIP
-          # -----------------------------------------------
+          cd "$GITHUB_WORKSPACE"
 
           echo ""
-          echo "===================================="
-          echo "FINAL ZIP CONTENT"
-          echo "===================================="
+          echo "=========================================="
+          echo "ZIP CREATED"
+          echo "=========================================="
 
-          unzip -l \
-            "$GITHUB_WORKSPACE/ios-app-for-appetize.zip"
+          ls -lh ios-app-for-appetize.zip
 
 
-          # -----------------------------------------------
-          # Verify .app exists inside ZIP
-          # -----------------------------------------------
+      # =====================================================
+      # 17. Verify ZIP
+      # =====================================================
 
-          if unzip -l \
-            "$GITHUB_WORKSPACE/ios-app-for-appetize.zip" \
+      - name: Verify Appetize ZIP
+        shell: bash
+        run: |
+          set -e
+
+          echo "=========================================="
+          echo "ZIP CONTENT"
+          echo "=========================================="
+
+          unzip -l ios-app-for-appetize.zip
+
+          echo ""
+          echo "Checking for .app..."
+
+          if unzip -l ios-app-for-appetize.zip \
             | grep -E '\.app/' > /dev/null; then
 
-            echo ""
-            echo "===================================="
-            echo "SUCCESS"
-            echo ".app is inside ZIP."
-            echo "===================================="
+            echo "SUCCESS: .app exists inside ZIP."
 
           else
 
-            echo ""
-            echo "===================================="
-            echo "ERROR"
-            echo ".app was NOT found inside ZIP."
-            echo "===================================="
-
+            echo "ERROR: .app was NOT found inside ZIP."
             exit 1
 
           fi
 
 
-          # -----------------------------------------------
-          # Show final ZIP
-          # -----------------------------------------------
-
-          echo ""
-          echo "===================================="
-          echo "FINAL ZIP"
-          echo "===================================="
-
-          ls -lh \
-            "$GITHUB_WORKSPACE/ios-app-for-appetize.zip"
-
-
       # =====================================================
-      # 15. Upload ONLY Appetize ZIP
+      # 18. Upload Artifact
       # =====================================================
 
-      - name: Upload Appetize Simulator Build
+      - name: Upload Appetize Build
         uses: actions/upload-artifact@v4
-
         with:
           name: ios-app-for-appetize
           path: ios-app-for-appetize.zip

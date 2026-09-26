@@ -72,9 +72,6 @@ kotlin {
         }
     }
 
-
-
-
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -87,8 +84,6 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
-            implementation(libs.androidx.lifecycle.viewmodelSavedstate)
-            implementation(libs.androidx.savedstate)
         }
 /*
         val wasmJsMain by getting {
@@ -110,8 +105,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelSavedstate)
             implementation(libs.androidx.savedstate)
             implementation(libs.androidx.navigation.compose)
-
-            implementation("androidx.savedstate:savedstate:1.2.1")
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)

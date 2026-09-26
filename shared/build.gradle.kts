@@ -104,6 +104,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.androidx.lifecycle.viewmodelSavedstate)
             implementation(libs.androidx.savedstate)
+            implementation("androidx.savedstate:savedstate:1.2.1")
             implementation(libs.androidx.navigation.compose)
 
             implementation(libs.kotlinx.coroutines.core)

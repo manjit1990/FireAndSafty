@@ -111,6 +111,8 @@ kotlin {
             implementation(libs.androidx.savedstate)
             implementation(libs.androidx.navigation.compose)
 
+            implementation("androidx.savedstate:savedstate:1.2.1")
+
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)

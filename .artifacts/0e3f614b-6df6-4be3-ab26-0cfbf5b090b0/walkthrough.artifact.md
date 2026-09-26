@@ -1,15 +1,15 @@
-# Walkthrough - iOS Build Dependency Cleanup
+# Walkthrough - iOS Build Workflow Cache Cleanup & Cinterop Fix
 
-Cleaned up `shared/build.gradle.kts` to resolve iOS build conflicts and compiler resolution errors:
-1. Removed `androidx.lifecycle.viewmodelSavedstate` and `androidx.savedstate` from `iosMain.dependencies`.
-2. Removed hardcoded `androidx.savedstate:savedstate:1.2.1` from `commonMain.dependencies`.
+Updated `.github/workflows/ios-build.yml` to prevent KLIB resolver / savedstate cinterop errors on iOS builds:
+1. Added `gradle-home-cache-cleanup: true` to Setup Gradle action.
+2. Added a cache clearing step (`./gradlew clean` and `rm -rf ~/.konan`) before compiling iOS binaries.
 
 ## Changes
 
-### Build Configuration
+### CI/CD Workflow
 
-#### [build.gradle.kts](file:///C:/Users/yoga/Desktop/New/FireAndSafty/shared/build.gradle.kts)
-- Cleaned up redundant dependencies in `iosMain` and `commonMain`.
+#### [ios-build.yml](file:///C:/Users/yoga/Desktop/New/FireAndSafty/.github/workflows/ios-build.yml)
+- Added Gradle cache cleanup and Konan cache purge to ensure clean KLIB resolution during GitHub Actions iOS builds.
 
 ## Verification Results
 

@@ -3,15 +3,25 @@ package com.yoga.firesafety.shared.presentation.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yoga.firesafety.shared.domain.model.Role
+import com.yoga.firesafety.shared.domain.model.TimeEntry
 import com.yoga.firesafety.shared.domain.model.User
+import com.yoga.firesafety.shared.domain.repository.TimesheetRepository
 import com.yoga.firesafety.shared.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class UserManagementViewModel(private val userRepository: UserRepository) : ViewModel() {
+class UserManagementViewModel(
+    private val userRepository: UserRepository,
+    private val timesheetRepository: TimesheetRepository
+) : ViewModel() {
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users: StateFlow<List<User>> = _users
+
+    val activeEntries: StateFlow<List<TimeEntry>> = timesheetRepository.observeAllActiveEntries()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading

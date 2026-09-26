@@ -8,8 +8,8 @@
     </style>
 
     <style name="Theme.FireSafety.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#FFFFFF</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenBackground">#070A13</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/app_logo</item>
         <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.FireSafety</item>
     </style>

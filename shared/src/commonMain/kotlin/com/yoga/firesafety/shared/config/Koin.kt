@@ -53,9 +53,12 @@ val commonModule = module {
     single<WorkOrderRepository> { FirebaseWorkOrderRepository() }
     single<UserRepository> { FirebaseUserRepository(get()) }
     single<SessionRepository> { SessionRepositoryImpl(get()) }
+    single<com.yoga.firesafety.shared.domain.repository.TimesheetRepository> { com.yoga.firesafety.shared.data.repository.TimesheetRepositoryImpl(get()) }
     factory { LoginViewModel(get(), get()) }
     factory { SignupViewModel(get(), get()) }
-    factory { UserManagementViewModel(get()) }
-    factory { WorkOrderViewModel(get()) }
+    factory { UserManagementViewModel(get(), get()) }
+    factory { WorkOrderViewModel(get(), get()) }
+    factory { com.yoga.firesafety.shared.presentation.dashboard.TimesheetViewModel(get(), get(), get()) }
     factory { MainViewModel(get(), get(), get()) }
 }
+

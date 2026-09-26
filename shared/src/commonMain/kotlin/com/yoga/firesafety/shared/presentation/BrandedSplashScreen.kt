@@ -5,15 +5,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,12 +27,25 @@ import firesafetyservicemanagement.shared.generated.resources.app_logo
 
 @Composable
 fun BrandedSplashScreen() {
+    var startAnimation by remember { mutableStateOf(false) }
+    val scaleAnim by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
     val progress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
+            animation = tween(1500, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         )
     )
@@ -36,42 +53,73 @@ fun BrandedSplashScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF070A13)) // Deep Navy/Black Background
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF0B1E36),
+                        Color(0xFF070A13),
+                        Color(0xFF030712)
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        // Main Content
+        // Glowing background aura
+        Box(
+            modifier = Modifier
+                .size(260.dp)
+                .scale(scaleAnim)
+                .blur(60.dp)
+                .background(Color(0xFF3B82F6).copy(alpha = 0.15f), CircleShape)
+        )
+
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .scale(scaleAnim),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Shield Logo
-            Image(
-                painter = painterResource(Res.drawable.app_logo),
-                contentDescription = null,
+            // Shield Logo with padded container ensuring no cropping
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(180.dp)
-                    .clip(RoundedCornerShape(32.dp))
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // A Safety Platform Badge
-            Surface(
-                color = Color.Transparent,
-                shape = RoundedCornerShape(100.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B66).copy(alpha = 0.5f))
+                    .size(160.dp)
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(Color.White.copy(alpha = 0.08f))
+                    .border(2.dp, Brush.linearGradient(listOf(Color(0xFF3B82F6), Color(0xFFFF4B66))), RoundedCornerShape(40.dp))
+                    .padding(20.dp)
             ) {
-                Text(
-                    text = "A SAFETY PLATFORM",
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
+                Image(
+                    painter = painterResource(Res.drawable.app_logo),
+                    contentDescription = "App Logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // Safety Platform Badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(Color(0xFFFF4B66).copy(alpha = 0.1f))
+                    .border(1.dp, Color(0xFFFF4B66).copy(alpha = 0.3f), RoundedCornerShape(100.dp))
+                    .padding(horizontal = 20.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "PROFESSIONAL SAFETY SUITE",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFFF4B66),
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp,
+                    fontSize = 10.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // TORBRAM Title
             Text(
@@ -79,59 +127,66 @@ fun BrandedSplashScreen() {
                 style = MaterialTheme.typography.headlineLarge,
                 color = Color.White,
                 fontWeight = FontWeight.Black,
-                fontSize = 42.sp,
+                fontSize = 40.sp,
                 letterSpacing = 4.sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // FIRE PROTECTION
             Text(
                 text = "FIRE PROTECTION",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFFFF4B66), // High-contrast Red
+                color = Color(0xFF3B82F6),
                 fontWeight = FontWeight.Black,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 letterSpacing = 4.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Service Subtitle
+            // Subtitle
             Text(
-                text = "INSPECTION  •  INSTALLATION  •  DISPATCH",
+                text = "INSPECTION  •  SERVICE  •  DISPATCH",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.4f),
                 fontWeight = FontWeight.Bold,
                 fontSize = 10.sp,
-                letterSpacing = 1.sp
+                letterSpacing = 1.5.sp
             )
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
             // Loading Status
             Text(
-                text = "CONNECTING SECURE DISPATCH...",
+                text = "INITIALIZING SECURE SYSTEM...",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp
+                letterSpacing = 1.5.sp,
+                fontSize = 10.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Custom Progress Bar
+            // Progress Bar
             Box(
                 modifier = Modifier
-                    .width(200.dp)
+                    .width(180.dp)
                     .height(4.dp)
-                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(2.dp))
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color.White.copy(alpha = 0.1f))
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(progress)
                         .fillMaxHeight()
-                        .background(Color(0xFFFF4B66), RoundedCornerShape(2.dp))
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(Color(0xFF3B82F6), Color(0xFFFF4B66))
+                            )
+                        )
                 )
             }
         }
@@ -140,33 +195,16 @@ fun BrandedSplashScreen() {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp)
+                .padding(bottom = 40.dp)
         ) {
             Text(
-                text = "TORBRAM SAFETY SUITE  •  v1.0.0",
+                text = "TORBRAM SAFETY PLATFORM  •  v1.0.0",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.2f),
+                color = Color.White.copy(alpha = 0.25f),
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
+                letterSpacing = 1.sp,
+                fontSize = 10.sp
             )
         }
-    }
-}
-
-@Composable
-fun Surface(
-    modifier: Modifier = Modifier,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(0.dp),
-    color: Color = Color.White,
-    border: androidx.compose.foundation.BorderStroke? = null,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(color, shape)
-            .then(if (border != null) Modifier.border(border, shape) else Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
     }
 }

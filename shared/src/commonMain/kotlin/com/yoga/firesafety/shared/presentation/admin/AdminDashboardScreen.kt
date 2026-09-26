@@ -1,9 +1,11 @@
 package com.yoga.firesafety.shared.presentation.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,7 +21,15 @@ import androidx.compose.ui.unit.dp
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderScheduleItem
+import com.yoga.firesafety.shared.presentation.dashboard.CalendarRibbon
 import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.plus
+import kotlinx.datetime.Instant as KotlinxInstant
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,11 +41,40 @@ fun AdminDashboardScreen(
     viewModel: WorkOrderViewModel = koinViewModel()
 ) {
     val workOrders by viewModel.workOrders.collectAsState()
+    val activeEntries by viewModel.activeEntries.collectAsState()
+    val onlineTechCount = activeEntries.map { it.userId }.distinct().size
+
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    val unassignedOrders = workOrders.filter { it.status == WorkOrderStatus.NEW }
-    val assignedOrders = workOrders.filter { 
+    val today = remember { 
+        KotlinxInstant.fromEpochMilliseconds(kotlinx.datetime.Clock.System.now().toEpochMilliseconds())
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .date 
+    }
+    val scope = rememberCoroutineScope()
+    var selectedDate by remember { mutableStateOf(today) }
+
+    val dateRange = remember { 
+        (-60..60).map { today.plus(DatePeriod(days = it)) } 
+    }
+    val calendarScrollState = rememberLazyListState(initialFirstVisibleItemIndex = 57)
+
+    LaunchedEffect(Unit) {
+        val todayIndex = dateRange.indexOf(today)
+        if (todayIndex != -1) {
+            calendarScrollState.scrollToItem(todayIndex - 2)
+        }
+    }
+
+    val dateFilteredOrders = remember(workOrders, selectedDate) {
+        workOrders.filter { order ->
+            order.scheduledAt?.startsWith(selectedDate.toString()) == true
+        }
+    }
+
+    val unassignedOrders = dateFilteredOrders.filter { it.status == WorkOrderStatus.NEW }
+    val assignedOrders = dateFilteredOrders.filter { 
         it.status == WorkOrderStatus.ASSIGNED || 
         it.status == WorkOrderStatus.STARTED || 
         it.status == WorkOrderStatus.IN_PROGRESS ||
@@ -43,7 +82,7 @@ fun AdminDashboardScreen(
         it.status == WorkOrderStatus.EN_ROUTE ||
         it.status == WorkOrderStatus.ON_SITE
     }
-    val completedOrders = workOrders.filter { 
+    val completedOrders = dateFilteredOrders.filter { 
         it.status == WorkOrderStatus.COMPLETED || it.status == WorkOrderStatus.CANCELLED 
     }
 
@@ -132,12 +171,41 @@ fun AdminDashboardScreen(
                 )
                 SummaryCard(
                     modifier = Modifier.weight(1f),
-                    title = "System Status",
-                    value = "Online",
-                    icon = Icons.Default.CheckCircle,
-                    color = MaterialTheme.colorScheme.secondary
+                    title = "Techs Online",
+                    value = "$onlineTechCount",
+                    icon = Icons.Default.Person,
+                    color = Color(0xFF2E7D32)
                 )
             }
+
+            // Calendar Ribbon & Go to Today
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 2.dp)) {
+                Text(
+                    "Go to Today",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF3B82F6),
+                    modifier = Modifier.align(Alignment.CenterStart).clickable { 
+                        selectedDate = today
+                        val todayIndex = dateRange.indexOf(today)
+                        if (todayIndex != -1) {
+                            scope.launch {
+                                calendarScrollState.animateScrollToItem(maxOf(0, todayIndex - 2))
+                            }
+                        }
+                    }
+                )
+            }
+
+            CalendarRibbon(
+                selectedDate = selectedDate, 
+                dateRange = dateRange,
+                scrollState = calendarScrollState,
+                workOrders = workOrders,
+                onDateSelected = { selectedDate = it }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 "Fleet Overview",
@@ -176,9 +244,9 @@ fun AdminDashboardScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = when(selectedTabIndex) {
-                                0 -> "No pending work orders"
-                                1 -> "No active assignments"
-                                else -> "No archived tasks"
+                                0 -> "No pending work orders for this date"
+                                1 -> "No active assignments for this date"
+                                else -> "No archived tasks for this date"
                             },
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -190,7 +258,12 @@ fun AdminDashboardScreen(
                     contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
                 ) {
                     items(filteredOrders) { order ->
-                        WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order.id) })
+                        WorkOrderScheduleItem(
+                            order = order, 
+                            isAdmin = true, 
+                            customButtonText = if (selectedTabIndex == 1) "Edit Task" else "Assign Task",
+                            onClick = { onWorkOrderClick(order.id) }
+                        )
                     }
                 }
             }

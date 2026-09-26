@@ -52,12 +52,19 @@ fun WorkOrderListScreen(
     onWorkOrderClick: (WorkOrder) -> Unit,
     onLogout: () -> Unit,
     viewModel: WorkOrderViewModel = koinViewModel(),
-    mainViewModel: MainViewModel = koinViewModel()
+    mainViewModel: MainViewModel = koinViewModel(),
+    timesheetViewModel: TimesheetViewModel = koinViewModel()
 ) {
     val authState by mainViewModel.authState.collectAsState()
     val userId = (authState as? AuthState.Authenticated)?.session?.userId ?: ""
     val workOrders by viewModel.technicianWorkOrders.collectAsState()
     val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
+    
+    val fullName = remember(authState) {
+        (authState as? AuthState.Authenticated)?.session?.let {
+            "${it.firstName ?: ""} ${it.lastName ?: ""}".trim().ifEmpty { it.email }
+        } ?: "Technician"
+    }
     
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
@@ -81,7 +88,7 @@ fun WorkOrderListScreen(
     // Full-screen map state
     var isFullScreenMapOpen by remember { mutableStateOf(false) }
     
-    // Schedule specific toggle: 0 = Day, 1 = List
+    // Schedule specific toggle: 0 = Day, 1 = List, 2 = Map
     var scheduleViewType by remember { mutableStateOf(0) }
     
     val datePickerState = rememberDatePickerState(
@@ -113,16 +120,10 @@ fun WorkOrderListScreen(
         workOrders.any { it.status.name == "STARTED" || it.status.name == "IN_PROGRESS" || it.status.name == "LIVE" }
     }
 
-    val currentViewWorkOrders = remember(workOrders, selectedDate, selectedTabIndex, scheduleViewType) {
+    val currentViewWorkOrders = remember(workOrders, selectedDate, selectedTabIndex) {
         when (selectedTabIndex) {
-            1 -> { // Schedule
-                if (scheduleViewType == 0) {
-                    // Day View: Filter by selected date
-                    workOrders.filter { it.scheduledAt?.startsWith(selectedDate.toString()) == true }
-                } else {
-                    // List Agenda: All non-completed tasks
-                    workOrders.filter { it.status != com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
-                }
+            1 -> { // Schedule (Both Day View, List Agenda and Map filter by selected date)
+                workOrders.filter { it.scheduledAt?.startsWith(selectedDate.toString()) == true }
             }
             2 -> { // Timesheet/Archive
                 workOrders.filter { it.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
@@ -165,7 +166,7 @@ fun WorkOrderListScreen(
 
     Scaffold(
         topBar = {
-            if (selectedTabIndex != 0 && selectedTabIndex != 3) {
+            if (selectedTabIndex == 1) {
                 Surface(
                     color = if (selectedTabIndex == 3) Color.Transparent else Color(0xFFF8F9FB),
                     shadowElevation = 0.dp
@@ -176,21 +177,8 @@ fun WorkOrderListScreen(
                             .statusBarsPadding()
                             .padding(horizontal = 20.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.Start
                     ) {
-                        Surface(
-                            onClick = onLogout,
-                            modifier = Modifier.size(38.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.White,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.05f)),
-                            shadowElevation = 1.dp
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", modifier = Modifier.size(22.dp), tint = Color.Black.copy(alpha = 0.6f))
-                            }
-                        }
-
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable { showDatePicker = true },
@@ -209,19 +197,6 @@ fun WorkOrderListScreen(
                                 tint = Color(0xFF131A30).copy(alpha = 0.4f),
                                 modifier = Modifier.size(20.dp)
                             )
-                        }
-
-                        Surface(
-                            onClick = { isFullScreenMapOpen = true },
-                            modifier = Modifier.size(38.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.White,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.05f)),
-                            shadowElevation = 2.dp
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Map, contentDescription = "Map", tint = Color(0xFF3B82F6), modifier = Modifier.size(20.dp))
-                            }
                         }
                     }
                 }
@@ -290,12 +265,6 @@ fun WorkOrderListScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     // Premium Technician Profile Card
-                    val fullName = remember(authState) {
-                        (authState as? AuthState.Authenticated)?.session?.let {
-                            "${it.firstName ?: ""} ${it.lastName ?: ""}".trim().ifEmpty { it.email }
-                        } ?: "Technician"
-                    }
-                    
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -308,13 +277,13 @@ fun WorkOrderListScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp),
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(modifier = Modifier.size(48.dp)) {
+                            Box(modifier = Modifier.size(36.dp)) {
                                 Surface(
                                     modifier = Modifier.fillMaxSize(),
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = RoundedCornerShape(10.dp),
                                     color = Color(0xFFF59E0B) // Amber
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
@@ -322,20 +291,20 @@ fun WorkOrderListScreen(
                                             text = fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("").take(2),
                                             fontWeight = FontWeight.Black,
                                             color = Color.Black,
-                                            style = MaterialTheme.typography.titleMedium
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
                                 }
                                 // Online status dot
                                 Surface(
-                                    modifier = Modifier.size(14.dp).align(Alignment.BottomEnd).offset(x = 2.dp, y = 2.dp),
+                                    modifier = Modifier.size(10.dp).align(Alignment.BottomEnd).offset(x = 2.dp, y = 2.dp),
                                     shape = CircleShape,
                                     color = Color(0xFF10B981),
                                     border = androidx.compose.foundation.BorderStroke(2.dp, Color.White)
                                 ) {}
                             }
                             
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -344,7 +313,7 @@ fun WorkOrderListScreen(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Black,
                                         color = Color(0xFF131A30),
-                                        fontSize = 18.sp
+                                        fontSize = 15.sp
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Verified", tint = Color(0xFF3B82F6), modifier = Modifier.size(16.dp))
@@ -377,26 +346,25 @@ fun WorkOrderListScreen(
                     
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val liveCount = currentViewWorkOrders.count { it.status.name == "STARTED" || it.status.name == "IN_PROGRESS" || it.status.name == "LIVE" }
-                        val upcomingCount = currentViewWorkOrders.count { it.status.name != "STARTED" && it.status.name != "IN_PROGRESS" && it.status.name != "LIVE" && it.status != com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
-                        val completedCount = currentViewWorkOrders.count { it.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
+                    if (scheduleViewType != 2) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val liveCount = currentViewWorkOrders.count { it.status.name == "STARTED" || it.status.name == "IN_PROGRESS" || it.status.name == "LIVE" }
+                            val upcomingCount = currentViewWorkOrders.count { it.status.name != "STARTED" && it.status.name != "IN_PROGRESS" && it.status.name != "LIVE" && it.status != com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
+                            val completedCount = currentViewWorkOrders.count { it.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
 
-                        FilterChipModern("All Tasks", currentViewWorkOrders.size.toString(), selectedTaskFilterIndex == 0) { selectedTaskFilterIndex = 0 }
-                        FilterChipModern("Live", liveCount.toString(), selectedTaskFilterIndex == 1, showDot = true) { selectedTaskFilterIndex = 1 }
-                        FilterChipModern("Upcoming", upcomingCount.toString(), selectedTaskFilterIndex == 2) { selectedTaskFilterIndex = 2 }
-                        FilterChipModern("Completed", completedCount.toString(), selectedTaskFilterIndex == 3) { selectedTaskFilterIndex = 3 }
+                            FilterChipModern("All Tasks", currentViewWorkOrders.size.toString(), selectedTaskFilterIndex == 0) { selectedTaskFilterIndex = 0 }
+                            FilterChipModern("Live", liveCount.toString(), selectedTaskFilterIndex == 1, showDot = true) { selectedTaskFilterIndex = 1 }
+                            FilterChipModern("Upcoming", upcomingCount.toString(), selectedTaskFilterIndex == 2) { selectedTaskFilterIndex = 2 }
+                            FilterChipModern("Completed", completedCount.toString(), selectedTaskFilterIndex == 3) { selectedTaskFilterIndex = 3 }
+                        }
                     }
-                } else if (selectedTabIndex == 2) {
-                    // Timesheet Header
-                    SectionHeader(title = "TIMESHEET", count = filteredList.size)
                 }
                 
                 Box(modifier = Modifier.weight(1f)) {
@@ -404,56 +372,133 @@ fun WorkOrderListScreen(
                         0 -> TechnicianMapHomeTab(workOrders = workOrders)
                         1 -> {
                             Column(modifier = Modifier.fillMaxSize()) {
-                                if (scheduleViewType == 0) {
-                                    if (filteredList.isEmpty()) {
-                                        EmptyStateView(message = "No tasks have been assigned to you for this date")
-                                    } else {
-                                        LazyColumn(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
-                                        ) {
-                                            items(filteredList) { order ->
-                                                WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order) })
+                                when (scheduleViewType) {
+                                    0 -> {
+                                        if (filteredList.isEmpty()) {
+                                            EmptyStateView(message = "No tasks have been assigned to you for this date")
+                                        } else {
+                                            DayViewTimeline(
+                                                workOrders = filteredList,
+                                                technicianName = fullName,
+                                                onOrderClick = { onWorkOrderClick(it) }
+                                            )
+                                        }
+                                    }
+                                    1 -> {
+                                        if (filteredList.isEmpty()) {
+                                            EmptyStateView(message = "You have no active tasks assigned at the moment")
+                                        } else {
+                                            LazyColumn(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
+                                            ) {
+                                                items(filteredList) { order ->
+                                                    WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order) })
+                                                }
                                             }
                                         }
                                     }
-                                } else {
-                                    if (filteredList.isEmpty()) {
-                                        EmptyStateView(message = "You have no active tasks assigned at the moment")
-                                    } else {
-                                        LazyColumn(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
-                                        ) {
-                                            items(filteredList) { order ->
-                                                WorkOrderScheduleItem(order = order, onClick = { onWorkOrderClick(order) })
+                                    2 -> {
+                                        var selectedOrderOnMap by remember(filteredList) { mutableStateOf<WorkOrder?>(filteredList.firstOrNull()) }
+                                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
+                                        Box(modifier = Modifier.fillMaxSize()) {
+                                            MapView(
+                                                modifier = Modifier.fillMaxSize(),
+                                                workOrders = filteredList
+                                            )
+
+                                            filteredList.forEachIndexed { index, order ->
+                                                val hashValue = order.id.hashCode().let { if (it < 0) -it else it }
+                                                val revHashValue = order.id.reversed().hashCode().let { if (it < 0) -it else it }
+                                                val xOffset = (hashValue % 60 + 20) / 100f
+                                                val yOffset = (revHashValue % 50 + 25) / 100f
+                                                
+                                                Box(
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopStart)
+                                                        .offset(
+                                                            x = (320 * xOffset).dp,
+                                                            y = (200 * yOffset).dp
+                                                        )
+                                                ) {
+                                                    MapPinpoint(
+                                                        isSelected = selectedOrderOnMap?.id == order.id,
+                                                        onClick = { selectedOrderOnMap = order }
+                                                    )
+                                                }
+                                            }
+
+                                            selectedOrderOnMap?.let { order ->
+                                                val isCompleted = order.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED
+                                                val startStr = order.scheduledAt?.substringAfter("T")?.take(5) ?: "12:00"
+                                                val endStr = order.scheduledEnd?.substringAfter("T")?.take(5) ?: "13:00"
+
+                                                Surface(
+                                                    onClick = { onWorkOrderClick(order) },
+                                                    modifier = Modifier
+                                                        .align(Alignment.BottomCenter)
+                                                        .padding(horizontal = 16.dp, vertical = 24.dp)
+                                                        .fillMaxWidth(),
+                                                    color = Color.White,
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3B82F6).copy(alpha = 0.3f)),
+                                                    shadowElevation = 8.dp
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.padding(16.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = if (isCompleted) Icons.Default.Check else Icons.Default.AccessTime,
+                                                            contentDescription = null,
+                                                            tint = if (isCompleted) Color(0xFF10B981) else Color(0xFF3B82F6),
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
+                                                        Column(modifier = Modifier.weight(1f)) {
+                                                            Text(
+                                                                text = "$startStr - $endStr",
+                                                                style = MaterialTheme.typography.titleMedium,
+                                                                fontWeight = FontWeight.Black,
+                                                                color = Color(0xFF131A30)
+                                                            )
+                                                            Text(
+                                                                text = "${order.type.lowercase().replaceFirstChar { it.uppercase() }} • ${order.buildingName}",
+                                                                style = MaterialTheme.typography.bodyMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = Color(0xFF131A30).copy(alpha = 0.8f),
+                                                                maxLines = 1
+                                                            )
+                                                            Text(
+                                                                text = order.address,
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = Color(0xFF131A30).copy(alpha = 0.5f),
+                                                                maxLines = 1
+                                                            )
+                                                        }
+                                                        IconButton(
+                                                            onClick = {
+                                                                val url = "https://www.google.com/maps/search/?api=1&query=${order.buildingName}, ${order.address}".replace(" ", "%20")
+                                                                try { uriHandler.openUri(url) } catch (e: Exception) {}
+                                                            },
+                                                            modifier = Modifier.size(40.dp).background(Color(0xFF3B82F6).copy(alpha = 0.1f), CircleShape)
+                                                        ) {
+                                                            Icon(Icons.Default.Directions, contentDescription = "Navigate", tint = Color(0xFF3B82F6), modifier = Modifier.size(20.dp))
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                        2 -> {
-                            if (filteredList.isEmpty()) {
-                                EmptyStateView(message = "No archived tasks found")
-                            } else {
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
-                                ) {
-                                    items(filteredList) { order ->
-                                        WorkOrderScheduleItem(
-                                            order = order, 
-                                            hasLiveTask = hasLiveTask,
-                                            onClick = { onWorkOrderClick(order) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        3 -> MoreScreen(onLogout = onLogout)
+                        2 -> TimesheetScreen(viewModel = timesheetViewModel)
+                        3 -> MoreScreen(onLogout = onLogout, timesheetViewModel = timesheetViewModel)
                     }
                 }
+
             }
 
             FloatingBottomNav(
@@ -493,6 +538,164 @@ fun WorkOrderListScreen(
                 color = Color.White,
                 letterSpacing = 2.sp
             )
+        }
+    }
+}
+
+@Composable
+fun DayViewTimeline(
+    workOrders: List<WorkOrder>,
+    technicianName: String,
+    onOrderClick: (WorkOrder) -> Unit
+) {
+    val completedCount = workOrders.count { it.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED }
+    val totalCount = workOrders.size
+
+    val hours = listOf(
+        "8 AM", "9 AM", "10 AM", "11 AM", "12 PM", 
+        "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+    ) {
+        // Personnel Header Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "A - $technicianName",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFF131A30),
+                fontSize = 16.sp
+            )
+            Text(
+                text = "$completedCount/$totalCount",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFF131A30).copy(alpha = 0.6f),
+                fontSize = 16.sp
+            )
+        }
+
+        HorizontalDivider(color = Color.Black.copy(alpha = 0.08f))
+
+        // Hourly Timeline Grid
+        hours.forEach { hourStr ->
+            val hourSlotOrders = workOrders.filter { order ->
+                val start = order.scheduledAt?.substringAfter("T")?.take(2)?.toIntOrNull() ?: -1
+                val slotHour = when {
+                    hourStr.contains("AM") -> {
+                        val h = hourStr.substringBefore(" ").toInt()
+                        if (h == 12) 0 else h
+                    }
+                    hourStr.contains("PM") -> {
+                        val h = hourStr.substringBefore(" ").toInt()
+                        if (h == 12) 12 else h + 12
+                    }
+                    else -> -1
+                }
+                start == slotHour
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 64.dp)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = hourStr,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF131A30).copy(alpha = 0.4f),
+                    modifier = Modifier.width(56.dp).padding(top = 4.dp),
+                    fontSize = 12.sp
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (hourSlotOrders.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                        ) {
+                            HorizontalDivider(
+                                color = Color.Black.copy(alpha = 0.03f),
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                    } else {
+                        hourSlotOrders.forEach { order ->
+                            val isCompleted = order.status == com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED
+                            Surface(
+                                onClick = { onOrderClick(order) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.White,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.05f)),
+                                shadowElevation = 1.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "${order.type.lowercase().replaceFirstChar { it.uppercase() }} • ${order.buildingName}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Black,
+                                            color = if (isCompleted) Color(0xFF131A30).copy(alpha = 0.5f) else Color(0xFF131A30),
+                                            fontSize = 14.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = order.address,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF131A30).copy(alpha = 0.4f),
+                                            maxLines = 1,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    if (isCompleted) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Completed",
+                                            tint = Color(0xFF10B981),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.ChevronRight,
+                                            contentDescription = null,
+                                            tint = Color(0xFF131A30).copy(alpha = 0.2f),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -543,7 +746,7 @@ fun LuxuryDayListToggle(selected: Int, onSelected: (Int) -> Unit) {
                 .clickable { onSelected(0) },
             contentAlignment = Alignment.Center
         ) {
-            Text("Day View", color = if (selected == 0) Color(0xFF131A30) else Color(0xFF131A30).copy(alpha = 0.4f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyLarge)
+            Text("Day", color = if (selected == 0) Color(0xFF131A30) else Color(0xFF131A30).copy(alpha = 0.4f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
         }
         Box(
             modifier = Modifier
@@ -553,7 +756,17 @@ fun LuxuryDayListToggle(selected: Int, onSelected: (Int) -> Unit) {
                 .clickable { onSelected(1) },
             contentAlignment = Alignment.Center
         ) {
-            Text("List Agenda", color = if (selected == 1) Color(0xFF131A30) else Color(0xFF131A30).copy(alpha = 0.4f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyLarge)
+            Text("List", color = if (selected == 1) Color(0xFF131A30) else Color(0xFF131A30).copy(alpha = 0.4f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .background(if (selected == 2) Color.White else Color.Transparent, RoundedCornerShape(12.dp))
+                .clickable { onSelected(2) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Map", color = if (selected == 2) Color(0xFF131A30) else Color(0xFF131A30).copy(alpha = 0.4f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -877,7 +1090,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    // Real Interactive Map Background
                     MapView(
                         modifier = Modifier.fillMaxSize()
                             .pointerInput(Unit) {
@@ -888,7 +1100,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                         workOrders = todaysTasks
                     )
 
-                    // Stylized grid simulation overlay
                     Column(
                         modifier = Modifier.fillMaxSize().padding(16.dp),
                         verticalArrangement = Arrangement.SpaceBetween
@@ -898,7 +1109,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                         }
                     }
                     
-                    // Plotting Task Pinpoints
                     todaysTasks.take(5).forEach { order ->
                         val hashValue = order.id.hashCode().let { if (it < 0) -it else it }
                         val revHashValue = order.id.reversed().hashCode().let { if (it < 0) -it else it }
@@ -920,7 +1130,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                         }
                     }
 
-                    // Task Detail Overlay on Map
                     selectedOrderOnMap?.let { order ->
                         Surface(
                             modifier = Modifier
@@ -969,7 +1178,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                 }
             }
 
-            // Up Next Card
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "UP NEXT",
@@ -979,7 +1187,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                     letterSpacing = 1.5.sp
                 )
                 
-                val todayStr = now.date.toString()
                 val nextOrder = workOrders.find { order ->
                     val dateMatches = order.scheduledAt?.startsWith(todayStr) == true
                     val isLive = order.status.name == "STARTED" || order.status.name == "IN_PROGRESS" || order.status.name == "LIVE"
@@ -1040,7 +1247,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                 }
             }
 
-            // This Week
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -1078,7 +1284,6 @@ fun TechnicianMapHomeTab(workOrders: List<WorkOrder>) {
                 }
             }
 
-            // Get Help
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
                 Text(
                     text = "Get Help",

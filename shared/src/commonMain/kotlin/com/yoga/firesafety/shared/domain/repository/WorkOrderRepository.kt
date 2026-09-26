@@ -1,5 +1,7 @@
 package com.yoga.firesafety.shared.domain.repository
 
+import com.yoga.firesafety.shared.domain.model.AssignedTechnician
+import com.yoga.firesafety.shared.domain.model.EmergencyContact
 import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +20,9 @@ interface WorkOrderRepository {
         scheduledEnd: String?,
         assignedAt: String,
         assignedById: String?,
-        assignedByName: String?
+        assignedByName: String?,
+        emergencyContacts: List<EmergencyContact> = emptyList(),
+        assignedTechnicians: List<AssignedTechnician> = emptyList()
     )
     fun getWorkOrdersForTechnician(technicianId: String): Flow<List<WorkOrder>>
     suspend fun startVisit(orderId: String)

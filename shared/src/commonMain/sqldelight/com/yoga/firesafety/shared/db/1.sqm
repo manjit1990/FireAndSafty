@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS InspectionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    workOrderId TEXT NOT NULL,
+    technicianId TEXT NOT NULL,
+    status TEXT NOT NULL,
+    startedAt TEXT,
+    completedAt TEXT,
+    notes TEXT,
+    isSynced INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS ChecklistItemEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    inspectionId TEXT NOT NULL,
+    questionKey TEXT NOT NULL,
+    response TEXT,
+    observations TEXT,
+    isSynced INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS SessionEntity (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    userId TEXT NOT NULL,
+    email TEXT NOT NULL,
+    firstName TEXT,
+    lastName TEXT,
+    role TEXT NOT NULL,
+    token TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS TimeEntryEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    userId TEXT NOT NULL,
+    clockInTime INTEGER NOT NULL,
+    clockOutTime INTEGER,
+    type TEXT NOT NULL,
+    workOrderId TEXT,
+    workOrderTitle TEXT,
+    notes TEXT,
+    date TEXT NOT NULL
+);

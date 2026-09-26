@@ -40,6 +40,7 @@ fun SignupScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var phoneNumber by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     
     val countries = listOf(
         Country("Canada", "+1", "🇨🇦"),
@@ -52,8 +53,15 @@ fun SignupScreen(
     var showCountryPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(state) {
-        if (state is SignupState.Success) {
-            onSignupSuccess((state as SignupState.Success).role)
+        when (state) {
+            is SignupState.Success -> {
+                isLoading = false
+                onSignupSuccess((state as SignupState.Success).role)
+            }
+            is SignupState.Error -> {
+                isLoading = false
+            }
+            else -> {}
         }
     }
 
@@ -208,6 +216,7 @@ fun SignupScreen(
                     
                     Button(
                         onClick = { 
+                            isLoading = true
                             val fullPhoneNumber = "${selectedCountry.code}${phoneNumber}"
                             viewModel.signup(firstName, lastName, email, password, fullPhoneNumber)
                         },
@@ -216,9 +225,9 @@ fun SignupScreen(
                             .height(48.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
-                        enabled = state !is SignupState.Loading && email.isNotBlank() && password.isNotBlank() && firstName.isNotBlank() && phoneNumber.isNotBlank()
+                        enabled = !isLoading && state !is SignupState.Loading && email.isNotBlank() && password.isNotBlank() && firstName.isNotBlank() && phoneNumber.isNotBlank()
                     ) {
-                        if (state is SignupState.Loading) {
+                        if (isLoading || state is SignupState.Loading) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                         } else {
                             Text("CREATE ACCOUNT", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, letterSpacing = 1.sp)

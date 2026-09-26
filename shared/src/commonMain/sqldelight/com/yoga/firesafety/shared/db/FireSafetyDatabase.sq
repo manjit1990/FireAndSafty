@@ -90,3 +90,43 @@ SELECT * FROM SessionEntity WHERE id = 1;
 
 clearSession:
 DELETE FROM SessionEntity WHERE id = 1;
+
+-- Timesheet Table
+CREATE TABLE TimeEntryEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    userId TEXT NOT NULL,
+    clockInTime INTEGER NOT NULL,
+    clockOutTime INTEGER,
+    type TEXT NOT NULL,
+    workOrderId TEXT,
+    workOrderTitle TEXT,
+    notes TEXT,
+    date TEXT NOT NULL
+);
+
+insertTimeEntry:
+INSERT OR REPLACE INTO TimeEntryEntity(id, userId, clockInTime, clockOutTime, type, workOrderId, workOrderTitle, notes, date)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateClockOut:
+UPDATE TimeEntryEntity SET clockOutTime = ? WHERE id = ?;
+
+updateClockOutWithNotes:
+UPDATE TimeEntryEntity SET clockOutTime = :clockOutTime, notes = COALESCE(:notes, notes) WHERE id = :id;
+
+getActiveTimeEntry:
+SELECT * FROM TimeEntryEntity WHERE userId = ? AND clockOutTime IS NULL ORDER BY clockInTime DESC LIMIT 1;
+
+getTimeEntriesForUser:
+SELECT * FROM TimeEntryEntity WHERE userId = ? ORDER BY clockInTime DESC;
+
+getTimeEntriesForUserAndDate:
+SELECT * FROM TimeEntryEntity WHERE userId = ? AND date = ? ORDER BY clockInTime DESC;
+
+clearTimeEntriesForUser:
+DELETE FROM TimeEntryEntity WHERE userId = ?;
+
+getAllActiveTimeEntries:
+SELECT * FROM TimeEntryEntity WHERE clockOutTime IS NULL;
+
+

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yoga.firesafety.shared.domain.model.WorkOrder
+import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,15 +41,10 @@ fun WorkOrderDetailsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Visit Details", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFF131A30).copy(alpha = 0.6f), fontSize = 14.sp) },
+                title = { Text("Visit Details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFF131A30), fontSize = 16.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF131A30))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color(0xFF131A30))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -79,7 +75,7 @@ fun WorkOrderDetailsScreen(
                         Surface(color = Color(0xFF3B82F6).copy(alpha = 0.1f), shape = RoundedCornerShape(100.dp)) {
                             Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Box(modifier = Modifier.size(6.dp).background(Color(0xFF3B82F6), CircleShape))
-                                Text("Today", style = MaterialTheme.typography.labelSmall, color = Color(0xFF3B82F6), fontWeight = FontWeight.ExtraBold)
+                                Text("Assigned", style = MaterialTheme.typography.labelSmall, color = Color(0xFF3B82F6), fontWeight = FontWeight.ExtraBold)
                             }
                         }
                         Surface(color = Color(0xFFF1F5F9), shape = RoundedCornerShape(100.dp)) {
@@ -112,7 +108,11 @@ fun WorkOrderDetailsScreen(
                     
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Schedule Row
+                    // Schedule Row (Dynamic Date & Time)
+                    val scheduleText = formatWorkOrderDateTimeRange(order.scheduledAt, order.scheduledEnd)
+                    val datePart = if (scheduleText.contains(",")) scheduleText.substringBefore(",") else scheduleText
+                    val timePart = if (scheduleText.contains(",")) scheduleText.substringAfter(", ") else "Unscheduled"
+
                     Surface(
                         color = Color(0xFFF8F9FB),
                         shape = RoundedCornerShape(12.dp),
@@ -125,7 +125,7 @@ fun WorkOrderDetailsScreen(
                         ) {
                             Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(18.dp))
                             Text(
-                                text = "Sep 17, 2026",
+                                text = datePart,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Black,
                                 color = Color(0xFF131A30),
@@ -133,7 +133,7 @@ fun WorkOrderDetailsScreen(
                             )
                             Box(modifier = Modifier.size(4.dp).background(Color.Black.copy(alpha = 0.1f), CircleShape))
                             Text(
-                                text = "14:05 - 15:00",
+                                text = timePart,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Black,
                                 color = Color(0xFF131A30),
@@ -144,88 +144,110 @@ fun WorkOrderDetailsScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Row 1: Directions + Call
+                    // Row 1: Directions + Emergency Calls
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             onClick = {
                                 val mapUri = "https://www.google.com/maps/dir/?api=1&destination=${order.address.replace(" ", "+")}&travelmode=driving"
                                 uriHandler.openUri(mapUri)
                             },
-                            modifier = Modifier.weight(1f).height(40.dp),
-                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f).height(44.dp),
+                            shape = RoundedCornerShape(12.dp),
                             color = Color(0xFF131A30)
                         ) {
                             Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Navigation, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text("Directions", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Directions", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
                             }
                         }
                         
-                        Surface(
-                            onClick = {},
-                            modifier = Modifier.size(40.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.White,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.08f)),
-                            shadowElevation = 1.dp
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.PhoneEnabled, contentDescription = "Call", tint = Color(0xFF131A30).copy(alpha = 0.6f), modifier = Modifier.size(20.dp))
+                        if (order.emergencyContacts.isNotEmpty()) {
+                            order.emergencyContacts.forEach { contact ->
+                                Surface(
+                                    onClick = {
+                                        try {
+                                            uriHandler.openUri("tel:${contact.phoneNumber}")
+                                        } catch (e: Exception) {}
+                                    },
+                                    modifier = Modifier.height(44.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFF10B981),
+                                    shadowElevation = 1.dp
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 14.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(Icons.Default.Phone, contentDescription = "Call", tint = Color.White, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = contact.name.ifEmpty { "Call" },
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Surface(
+                                onClick = {
+                                    order.technicianPhoneNumber?.let { phone ->
+                                        try {
+                                            uriHandler.openUri("tel:$phone")
+                                        } catch (e: Exception) {}
+                                    }
+                                },
+                                modifier = Modifier.size(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.White,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.08f)),
+                                shadowElevation = 1.dp
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.PhoneEnabled, contentDescription = "Call", tint = Color(0xFF131A30).copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // Start + Complete + More Row (Secondary Action Bar)
-            if (order.status != com.yoga.firesafety.shared.domain.model.WorkOrderStatus.COMPLETED) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), 
-                    horizontalArrangement = Arrangement.spacedBy(10.dp), 
-                    verticalAlignment = Alignment.CenterVertically
+            // Start Visit vs Complete Visit Action Bar (Dynamic based on visit state)
+            if (order.status != WorkOrderStatus.COMPLETED) {
+                val isStarted = order.status.name == "STARTED" || order.status.name == "IN_PROGRESS" || order.status.name == "LIVE"
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Surface(
-                        onClick = onStartVisit,
-                        modifier = Modifier.weight(1f).height(40.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.06f)),
-                        shadowElevation = 0.5.dp,
-                        enabled = order.status.name != "STARTED"
-                    ) {
-                        Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Start Visit", fontWeight = FontWeight.Bold, color = Color(0xFF131A30), fontSize = 12.sp)
+                    if (!isStarted) {
+                        Surface(
+                            onClick = onStartVisit,
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFF3B82F6),
+                            shadowElevation = 2.dp
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Start Visit", fontWeight = FontWeight.Black, color = Color.White, fontSize = 15.sp, letterSpacing = 0.5.sp)
+                            }
                         }
-                    }
-
-                    Surface(
-                        onClick = onCompleteVisit,
-                        modifier = Modifier.weight(1.2f).height(40.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFF10B981),
-                        shadowElevation = 1.dp,
-                        enabled = order.status.name == "STARTED"
-                    ) {
-                        Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CheckCircleOutline, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Complete Visit", fontWeight = FontWeight.Black, color = Color.White, fontSize = 12.sp)
-                        }
-                    }
-
-                    Surface(
-                        onClick = {},
-                        modifier = Modifier.size(40.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.06f)),
-                        shadowElevation = 0.5.dp
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.MoreHoriz, contentDescription = null, tint = Color(0xFF131A30).copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                    } else {
+                        Surface(
+                            onClick = onCompleteVisit,
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFF10B981),
+                            shadowElevation = 2.dp
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CheckCircleOutline, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Complete Visit", fontWeight = FontWeight.Black, color = Color.White, fontSize = 15.sp, letterSpacing = 0.5.sp)
+                            }
                         }
                     }
                 }
@@ -309,31 +331,31 @@ fun WorkOrderDetailsScreen(
                                 }
                             }
                             
-                                Column {
-                                    Text("Checklists", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFF131A30))
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    
-                                    Surface(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(16.dp),
-                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.05f))
-                                    ) {
-                                        Column {
-                                            MockupChecklistItem(
-                                                title = "Monthly Deficiency Report", 
-                                                subtitle = "Not filled", 
-                                                hasSync = false, 
-                                                onClick = { onChecklistClick("deficiency") }
-                                            )
-                                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.Black.copy(alpha = 0.05f))
-                                            MockupChecklistItem(
-                                                title = "Monthly Fire Alarm, Sprinkler, Extinguisher, Emergency Lighting Testing", 
-                                                subtitle = "Fire Alarm Panel & Valves", 
-                                                onClick = { onChecklistClick("inspection") }
-                                            )
-                                        }
+                            Column {
+                                Text("Checklists", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFF131A30))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Surface(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black.copy(alpha = 0.05f))
+                                ) {
+                                    Column {
+                                        MockupChecklistItem(
+                                            title = "Monthly Deficiency Report", 
+                                            subtitle = "Not filled", 
+                                            hasSync = false, 
+                                            onClick = { onChecklistClick("deficiency") }
+                                        )
+                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.Black.copy(alpha = 0.05f))
+                                        MockupChecklistItem(
+                                            title = "Monthly Fire Alarm, Sprinkler, Extinguisher, Emergency Lighting Testing", 
+                                            subtitle = "Fire Alarm Panel & Valves", 
+                                            onClick = { onChecklistClick("inspection") }
+                                        )
                                     }
                                 }
+                            }
                         }
                     }
                     1 -> DetailsTabContent(order)

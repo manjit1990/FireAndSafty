@@ -4,6 +4,19 @@ import kotlinx.serialization.Serializable
 import kotlinx.datetime.*
 
 @Serializable
+data class EmergencyContact(
+    val name: String = "",
+    val phoneNumber: String = ""
+)
+
+@Serializable
+data class AssignedTechnician(
+    val id: String = "",
+    val name: String = "",
+    val phoneNumber: String = ""
+)
+
+@Serializable
 data class WorkOrder(
     val id: String,
     val buildingName: String,
@@ -25,7 +38,9 @@ data class WorkOrder(
     val completionPhotos: List<String> = emptyList(),
     val completionVideos: List<String> = emptyList(),
     val completionQuestions: Map<String, String> = emptyMap(),
-    val completedAt: String? = null
+    val completedAt: String? = null,
+    val emergencyContacts: List<EmergencyContact> = emptyList(),
+    val assignedTechnicians: List<AssignedTechnician> = emptyList()
 )
 
 fun WorkOrder.checkIfOverdue(now: kotlinx.datetime.Instant): Boolean {

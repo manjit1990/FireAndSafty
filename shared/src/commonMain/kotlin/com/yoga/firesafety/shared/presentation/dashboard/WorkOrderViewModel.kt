@@ -4,10 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.repository.WorkOrderRepository
+import com.yoga.firesafety.shared.domain.model.TimeEntry
+import com.yoga.firesafety.shared.domain.repository.TimesheetRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewModel() {
+class WorkOrderViewModel(
+    private val repository: WorkOrderRepository,
+    private val timesheetRepository: TimesheetRepository
+) : ViewModel() {
+    val activeEntries: StateFlow<List<TimeEntry>> = timesheetRepository.observeAllActiveEntries()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     private val _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex: StateFlow<Int> = _selectedTabIndex
 
@@ -59,7 +66,9 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
         scheduledEnd: String?,
         assignedAt: String,
         assignedById: String?,
-        assignedByName: String?
+        assignedByName: String?,
+        emergencyContacts: List<com.yoga.firesafety.shared.domain.model.EmergencyContact> = emptyList(),
+        assignedTechnicians: List<com.yoga.firesafety.shared.domain.model.AssignedTechnician> = emptyList()
     ) {
         viewModelScope.launch {
             _assignmentState.value = AssignmentState.Loading
@@ -73,7 +82,9 @@ class WorkOrderViewModel(private val repository: WorkOrderRepository) : ViewMode
                     scheduledEnd = scheduledEnd,
                     assignedAt = assignedAt,
                     assignedById = assignedById,
-                    assignedByName = assignedByName
+                    assignedByName = assignedByName,
+                    emergencyContacts = emergencyContacts,
+                    assignedTechnicians = assignedTechnicians
                 )
                 _assignmentState.value = AssignmentState.Success
             } catch (e: Exception) {

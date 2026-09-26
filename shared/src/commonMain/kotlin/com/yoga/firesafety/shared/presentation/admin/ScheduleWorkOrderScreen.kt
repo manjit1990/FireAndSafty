@@ -1,6 +1,7 @@
 package com.yoga.firesafety.shared.presentation.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yoga.firesafety.shared.domain.model.AssignedTechnician
+import com.yoga.firesafety.shared.domain.model.EmergencyContact
 import com.yoga.firesafety.shared.domain.model.Role
 import com.yoga.firesafety.shared.domain.model.User
 import com.yoga.firesafety.shared.presentation.MainViewModel
@@ -25,7 +28,6 @@ import com.yoga.firesafety.shared.presentation.dashboard.AssignmentState
 import com.yoga.firesafety.shared.presentation.dashboard.WorkOrderViewModel
 import com.yoga.firesafety.shared.presentation.dashboard.formatIsoDateTime
 import com.yoga.firesafety.shared.presentation.dashboard.formatWorkOrderDateTimeRange
-import com.yoga.firesafety.shared.presentation.inspection.DropdownField
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -61,10 +63,14 @@ fun ScheduleWorkOrderScreen(
     val technicians = allUsers.filter { it.role == Role.TECHNICIAN }
     val assignmentState by workOrderViewModel.assignmentState.collectAsState()
     
-    var selectedTech by remember { mutableStateOf<User?>(null) }
+    val selectedTechnicians = remember { mutableStateListOf<User>() }
     var selectedDate by remember { mutableStateOf("") }
     var selectedStartTime by remember { mutableStateOf("") }
     var selectedEndTime by remember { mutableStateOf("") }
+    
+    val emergencyContacts = remember { mutableStateListOf<EmergencyContact>() }
+    var newContactName by remember { mutableStateOf("") }
+    var newContactPhone by remember { mutableStateOf("") }
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -74,9 +80,6 @@ fun ScheduleWorkOrderScreen(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 val today = Clock.System.now().toEpochMilliseconds()
-                // Allow today and future. Millis are for start of day in UTC usually.
-                // Subtract 1 day in millis to be safe about timezones if needed, 
-                // but let's try strict today first.
                 return utcTimeMillis >= today - 86400000 
             }
         }
@@ -89,13 +92,26 @@ fun ScheduleWorkOrderScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(order?.id, order?.technicianId, order?.scheduledAt, order?.scheduledEnd, technicians) {
+    LaunchedEffect(order?.id, order?.technicianId, order?.assignedTechnicians, order?.scheduledAt, order?.scheduledEnd, order?.emergencyContacts, technicians) {
         if (order == null) return@LaunchedEffect
 
-        selectedTech = technicians.firstOrNull { it.id == order.technicianId } ?: selectedTech
         selectedDate = order.scheduledAt?.substringBefore("T").orEmpty()
         selectedStartTime = order.scheduledAt?.substringAfter("T", "")?.take(5).orEmpty()
         selectedEndTime = order.scheduledEnd?.substringAfter("T", "")?.take(5).orEmpty()
+        
+        if (selectedTechnicians.isEmpty() && technicians.isNotEmpty()) {
+            if (!order.assignedTechnicians.isNullOrEmpty()) {
+                val assigned = technicians.filter { tech -> order.assignedTechnicians.any { it.id == tech.id } }
+                selectedTechnicians.addAll(assigned)
+            } else if (!order.technicianId.isNullOrEmpty()) {
+                technicians.find { it.id == order.technicianId }?.let { selectedTechnicians.add(it) }
+            }
+        }
+
+        if (emergencyContacts.isEmpty() && !order.emergencyContacts.isNullOrEmpty()) {
+            emergencyContacts.clear()
+            emergencyContacts.addAll(order.emergencyContacts)
+        }
     }
 
     LaunchedEffect(assignmentState) {
@@ -209,15 +225,55 @@ fun ScheduleWorkOrderScreen(
                         Spacer(modifier = Modifier.height(20.dp))
                     }
                     
-                    // Technician Selection
-                    DropdownField(
-                        label = "Assign Technician",
-                        selectedValue = selectedTech?.let { "${it.firstName} ${it.lastName}" } ?: "",
-                        options = technicians.map { "${it.firstName} ${it.lastName}" },
-                        onOptionSelected = { name ->
-                            selectedTech = technicians.find { "${it.firstName} ${it.lastName}" == name }
+                    // Multi-Select Technicians Section
+                    Text("Assign Technicians (Select 1 or more)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (technicians.isEmpty()) {
+                        Text("No technicians found in system", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            technicians.forEach { tech ->
+                                val techName = "${tech.firstName} ${tech.lastName}".trim().ifEmpty { tech.email }
+                                val isSelected = selectedTechnicians.any { it.id == tech.id }
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            if (isSelected) {
+                                                selectedTechnicians.removeAll { it.id == tech.id }
+                                            } else {
+                                                selectedTechnicians.add(tech)
+                                            }
+                                        },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                            Checkbox(
+                                                checked = isSelected,
+                                                onCheckedChange = { checked ->
+                                                    if (checked) {
+                                                        if (!selectedTechnicians.any { it.id == tech.id }) selectedTechnicians.add(tech)
+                                                    } else {
+                                                        selectedTechnicians.removeAll { it.id == tech.id }
+                                                    }
+                                                }
+                                            )
+                                            Text(techName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        }
+                                        Text(tech.phoneNumber, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
                         }
-                    )
+                    }
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
@@ -248,6 +304,68 @@ fun ScheduleWorkOrderScreen(
                             onClick = { showEndTimePicker = true }
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(28.dp))
+                    Text("Emergency Contacts (Optional)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    emergencyContacts.forEachIndexed { index, contact ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(contact.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                    Text(contact.phoneNumber, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                IconButton(onClick = { emergencyContacts.removeAt(index) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = newContactName,
+                            onValueChange = { newContactName = it },
+                            label = { Text("Contact Name") },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = newContactPhone,
+                            onValueChange = { newContactPhone = it },
+                            label = { Text("Phone Number") },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            if (newContactName.isNotBlank() && newContactPhone.isNotBlank()) {
+                                emergencyContacts.add(EmergencyContact(name = newContactName, phoneNumber = newContactPhone))
+                                newContactName = ""
+                                newContactPhone = ""
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Emergency Contact", fontWeight = FontWeight.Bold)
+                    }
                     
                     Spacer(modifier = Modifier.height(48.dp))
                     
@@ -276,26 +394,36 @@ fun ScheduleWorkOrderScreen(
                                 }
                             }
 
-                            selectedTech?.let { technician ->
-                                val technicianName = "${technician.firstName} ${technician.lastName}".trim()
+                            if (selectedTechnicians.isNotEmpty()) {
+                                val primaryTech = selectedTechnicians.first()
+                                val techNames = selectedTechnicians.joinToString(", ") { "${it.firstName} ${it.lastName}".trim() }
+                                val assignedTechsModels = selectedTechnicians.map { 
+                                    AssignedTechnician(
+                                        id = it.id,
+                                        name = "${it.firstName} ${it.lastName}".trim().ifEmpty { it.email },
+                                        phoneNumber = it.phoneNumber
+                                    )
+                                }
                                 val isoStart = "${selectedDate}T${selectedStartTime}:00"
                                 val isoEnd = "${selectedDate}T${selectedEndTime}:00"
                                 workOrderViewModel.assignOrder(
                                     orderId = orderId,
-                                    technicianId = technician.id,
-                                    technicianName = technicianName.ifEmpty { technician.email },
-                                    technicianPhoneNumber = technician.phoneNumber,
+                                    technicianId = primaryTech.id,
+                                    technicianName = techNames,
+                                    technicianPhoneNumber = primaryTech.phoneNumber,
                                     scheduledAt = isoStart,
                                     scheduledEnd = isoEnd,
                                     assignedAt = kotlinx.datetime.Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds()).toString(),
                                     assignedById = adminId,
-                                    assignedByName = adminName
+                                    assignedByName = adminName,
+                                    emergencyContacts = emergencyContacts.toList(),
+                                    assignedTechnicians = assignedTechsModels
                                 )
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(20.dp),
-                        enabled = !isAssigning && selectedTech != null && selectedDate.isNotEmpty() && selectedStartTime.isNotEmpty() && selectedEndTime.isNotEmpty(),
+                        enabled = !isAssigning && selectedTechnicians.isNotEmpty() && selectedDate.isNotEmpty() && selectedStartTime.isNotEmpty() && selectedEndTime.isNotEmpty(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                     ) {
@@ -474,6 +602,7 @@ fun TimePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
+        containerColor = Color.White,
         confirmButton = confirmButton,
         dismissButton = {
             TextButton(onClick = onDismissRequest) {

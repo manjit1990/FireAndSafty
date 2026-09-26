@@ -1,11 +1,12 @@
 package com.yoga.firesafety.shared.data.repository
 
+import com.yoga.firesafety.shared.domain.model.AssignedTechnician
+import com.yoga.firesafety.shared.domain.model.EmergencyContact
 import com.yoga.firesafety.shared.domain.model.WorkOrder
 import com.yoga.firesafety.shared.domain.model.WorkOrderStatus
 import com.yoga.firesafety.shared.domain.repository.WorkOrderRepository
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
-import dev.gitlive.firebase.firestore.where
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -15,7 +16,7 @@ class FirebaseWorkOrderRepository : WorkOrderRepository {
 
     override fun getWorkOrders(): Flow<List<WorkOrder>> {
         return collection.snapshots.map { querySnapshot ->
-            querySnapshot.documents.map { it.data() }
+            querySnapshot.documents.map { doc -> doc.data<WorkOrder>() }
         }
     }
 
@@ -40,7 +41,9 @@ class FirebaseWorkOrderRepository : WorkOrderRepository {
         scheduledEnd: String?,
         assignedAt: String,
         assignedById: String?,
-        assignedByName: String?
+        assignedByName: String?,
+        emergencyContacts: List<EmergencyContact>,
+        assignedTechnicians: List<AssignedTechnician>
     ) {
         collection.document(id).update(
             "status" to WorkOrderStatus.ASSIGNED.name,
@@ -51,13 +54,17 @@ class FirebaseWorkOrderRepository : WorkOrderRepository {
             "scheduledEnd" to scheduledEnd,
             "assignedAt" to assignedAt,
             "assignedById" to assignedById,
-            "assignedByName" to assignedByName
+            "assignedByName" to assignedByName,
+            "emergencyContacts" to emergencyContacts,
+            "assignedTechnicians" to assignedTechnicians
         )
     }
 
     override fun getWorkOrdersForTechnician(technicianId: String): Flow<List<WorkOrder>> {
-        return collection.where("technicianId", equalTo = technicianId).snapshots.map { querySnapshot ->
-            querySnapshot.documents.map { it.data() }
+        return collection.snapshots.map { querySnapshot ->
+            querySnapshot.documents.map { doc -> doc.data<WorkOrder>() }.filter { order ->
+                order.technicianId == technicianId || order.assignedTechnicians.any { it.id == technicianId }
+            }
         }
     }
 

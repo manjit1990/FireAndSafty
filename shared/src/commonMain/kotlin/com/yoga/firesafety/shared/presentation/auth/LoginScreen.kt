@@ -40,37 +40,45 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(state) {
-        if (state is LoginState.Success) {
-            onLoginSuccess((state as LoginState.Success).role)
+        when (state) {
+            is LoginState.Success -> {
+                isLoading = false
+                onLoginSuccess((state as LoginState.Success).role)
+            }
+            is LoginState.Error -> {
+                isLoading = false
+            }
+            else -> {}
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FB))
+            .background(Color(0xFFF8F9FB)),
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
             // Logo Section
             Image(
                 painter = painterResource(Res.drawable.app_logo),
                 contentDescription = "App Logo",
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(110.dp)
                     .clip(RoundedCornerShape(24.dp))
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
             Text(
                 text = "TORBRAM",
@@ -86,7 +94,7 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             
             // Login Card
             Card(
@@ -123,7 +131,7 @@ fun LoginScreen(
                             focusedContainerColor = Color(0xFFF8F9FB)
                         )
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     OutlinedTextField(
                         value = password,
@@ -151,15 +159,18 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     Button(
-                        onClick = { viewModel.login(email, password) },
+                        onClick = {
+                            isLoading = true
+                            viewModel.login(email, password)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
-                        enabled = state !is LoginState.Loading
+                        enabled = !isLoading && state !is LoginState.Loading
                     ) {
-                        if (state is LoginState.Loading) {
+                        if (isLoading || state is LoginState.Loading) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                         } else {
                             Text("SIGN IN", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
@@ -219,8 +230,6 @@ fun LoginScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

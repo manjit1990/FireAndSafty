@@ -78,8 +78,16 @@ class MainViewModel(
     fun logout() {
         monitoringJob?.cancel()
         viewModelScope.launch {
-            Firebase.auth.signOut()
-            sessionRepository.clearSession()
+            try {
+                Firebase.auth.signOut()
+            } catch (e: Exception) {
+                println("Logout auth error: ${e.message}")
+            }
+            try {
+                sessionRepository.clearSession()
+            } catch (e: Exception) {
+                println("Logout session error: ${e.message}")
+            }
             _authState.value = AuthState.Unauthenticated
         }
     }
